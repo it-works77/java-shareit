@@ -7,9 +7,6 @@ import lombok.Data;
 
 @Data
 public class UserRequestDto {
-    @Positive
-    Long id;
-
     String name;
 
     @Email

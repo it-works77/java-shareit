@@ -8,7 +8,7 @@ import ru.practicum.shareit.user.dto.UserResponseDto;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
-    public static User mapUsesRequestDtoToUser(UserRequestDto userRequestDto) {
+    public static User mapUserRequestDtoToUser(UserRequestDto userRequestDto) {
         return User.builder()
                 .name(userRequestDto.getName())
                 .email(userRequestDto.getEmail())
