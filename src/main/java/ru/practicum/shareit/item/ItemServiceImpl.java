@@ -22,6 +22,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponseDto updateById(Long id, ItemRequestDto itemRequestDto) {
+        // TODO Репозиторий сохраняет все поля без проверки. Реализовать корректное состояние Item для PATCH
         return null;
     }
 

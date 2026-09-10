@@ -14,5 +14,9 @@ public interface ItemRepository {
 
     List<Item> getAll();
 
-    boolean remove(Integer id);
+    List<Item> getAllByUserId(Long userId);
+
+    List<Item> search(Long userId, String text);
+
+    boolean remove(Long id);
 }

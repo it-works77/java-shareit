@@ -1,35 +1,77 @@
 package ru.practicum.shareit.item.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exceptions.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class ItemInMemoryRepositoryImpl implements ItemRepository {
+    private final HashMap<Long, Item> items = new HashMap<>();
+    private Long currentItemId = 0L;
+
     @Override
     public Item add(Item item) {
-        return null;
+        item.setId(getId());
+        items.put(item.getId(), item);
+        return item;
     }
 
     @Override
     public Item update(Item item) {
-        return null;
+        if (item.getId() == null) {
+            throw new IllegalArgumentException("itemId должен быть задан");
+        }
+
+        Item modifiedItem = items.get(item.getId());
+        if (modifiedItem == null) {
+            throw new EntityNotFoundException("Вещь не найдена по id=%s".formatted(item.getId()));
+        }
+
+        modifiedItem.setName(item.getName());
+        modifiedItem.setDescription(item.getDescription());
+        modifiedItem.setAvailable(item.isAvailable());
+
+        return modifiedItem;
     }
 
     @Override
     public Optional<Item> get(Long id) {
-        return Optional.empty();
+        return Optional.ofNullable(items.get(id));
     }
 
     @Override
     public List<Item> getAll() {
-        return List.of();
+        return items.values().stream()
+                .toList();
     }
 
     @Override
-    public boolean remove(Integer id) {
-        return false;
+    public List<Item> getAllByUserId(Long userId) {
+
+        return items.values().stream()
+                .filter(item -> item.getOwnerId().equals(userId))
+                .toList();
+    }
+
+    @Override
+    public List<Item> search(Long userId, String text) {
+        return items.values().stream()
+                .filter(item -> item.getName().contains(text) || item.getDescription().contains(text))
+                .toList();
+    }
+
+
+    @Override
+    public boolean remove(Long id) {
+        return items.remove(id) != null;
+    }
+
+    private Long getId() {
+        return currentItemId++;
     }
 }
