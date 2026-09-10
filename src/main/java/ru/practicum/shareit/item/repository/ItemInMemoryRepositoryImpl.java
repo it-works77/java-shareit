@@ -6,6 +6,7 @@ import ru.practicum.shareit.item.model.Item;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -59,8 +60,14 @@ public class ItemInMemoryRepositoryImpl implements ItemRepository {
 
     @Override
     public List<Item> search(Long userId, String text) {
+        // Тест проверяет case insensitive поиск
+        String textInLowerCase = text.toLowerCase();
         return items.values().stream()
-                .filter(item -> item.getName().contains(text) || item.getDescription().contains(text))
+                .filter(item -> Objects.equals(userId, item.getOwnerId()))
+                .filter(item -> item.getName().toLowerCase().contains(textInLowerCase)
+                        || item.getDescription().toLowerCase().contains(textInLowerCase))
+                // ТЗ: Проверьте, что поиск возвращает только доступные для аренды вещи
+                .filter(Item::getAvailable)
                 .toList();
     }
 
