@@ -16,6 +16,7 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundErrors(EntityNotFoundException ex) {
         ErrorResponse body = ErrorResponse.builder()
@@ -25,6 +26,17 @@ public class GlobalExceptionHandler {
         log.warn("Объект не найден: {}", ex.getMessage());
         log.debug("Объект не найден", ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(ErrorResponse.EntityAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleEntityAlreadyExistsErrors(ErrorResponse.EntityAlreadyExistsException ex) {
+        ErrorResponse body = ErrorResponse.builder()
+                .message("Нарушение уникальности")
+                .details(ex.getMessage())
+                .build();
+        log.warn("Нарушение уникальности: {}", ex.getMessage());
+        log.debug("Нарушение уникальности", ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)

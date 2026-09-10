@@ -1,35 +1,71 @@
 package ru.practicum.shareit.user.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.EntityNotFoundException;
+import ru.practicum.shareit.exception.ErrorResponse;
 import ru.practicum.shareit.user.model.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
 public class UserInMemoryRepositoryImpl implements UserRepository {
+    private final HashMap<Long, User> users = new HashMap<>();
+    private Long currentUserId = 1L;
+
     @Override
     public User add(User user) {
-        return null;
+        user.setId(getId());
+
+        if (isEmailExists(user.getEmail())) {
+            throw new ErrorResponse.EntityAlreadyExistsException("Пользователь с email=%s уже существует"
+                    .formatted(user.getEmail()));
+        }
+        users.put(user.getId(), user);
+        return user;
     }
 
     @Override
     public User update(User user) {
-        return null;
+        if (user.getId() == null) {
+            throw new IllegalArgumentException("userId должен быть задан");
+        }
+
+        User existingUser = users.get(user.getId());
+        if (existingUser == null) {
+            throw new EntityNotFoundException("Пользователь не найден по id=%s".formatted(user.getId()));
+        }
+
+        //TODO email has to be unique
+
+        Optional.ofNullable(user.getName()).ifPresent(existingUser::setName);
+        Optional.ofNullable(user.getEmail()).ifPresent(existingUser::setEmail);
+        return existingUser;
     }
 
     @Override
     public Optional<User> get(Long id) {
-        return Optional.empty();
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
     public List<User> getAll() {
-        return List.of();
+        return users.values().stream().toList();
     }
 
     @Override
-    public boolean remove(Integer id) {
-        return false;
+    public boolean remove(Long id) {
+        return users.remove(id) != null;
+    }
+
+    private Long getId() {
+        return currentUserId++;
+    }
+
+    private boolean isEmailExists(String email) {
+        return users.values().stream()
+                .anyMatch(user -> Objects.equals(email, user.getEmail()));
     }
 }

@@ -14,5 +14,5 @@ public interface UserRepository {
 
     List<User> getAll();
 
-    boolean remove(Integer id);
+    boolean remove(Long id);
 }
