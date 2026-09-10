@@ -32,9 +32,10 @@ public class ItemServiceImpl implements ItemService {
     public ItemResponseDto updateById(Long id, ItemUpdateRequestDto itemUpdateRequestDto) {
         itemRepository.get(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
-        itemRepository.update(ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto));
-
-        return null;
+        Item item = ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto);
+        item.setId(id);
+        itemRepository.update(item);
+        return ItemMapper.mapItemToItemResponseDto(item);
     }
 
     @Override
