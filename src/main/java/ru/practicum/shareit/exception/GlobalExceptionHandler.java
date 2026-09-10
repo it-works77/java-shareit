@@ -28,8 +28,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
-    @ExceptionHandler(ErrorResponse.EntityAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEntityAlreadyExistsErrors(ErrorResponse.EntityAlreadyExistsException ex) {
+    @ExceptionHandler(EntityAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleEntityAlreadyExistsErrors(EntityAlreadyExistsException ex) {
         ErrorResponse body = ErrorResponse.builder()
                 .message("Нарушение уникальности")
                 .details(ex.getMessage())

@@ -8,10 +8,4 @@ import lombok.Data;
 public class ErrorResponse {
     private String message;
     private String details;
-
-    public static class EntityAlreadyExistsException extends RuntimeException {
-        public EntityAlreadyExistsException(String message) {
-            super(message);
-        }
-    }
 }
