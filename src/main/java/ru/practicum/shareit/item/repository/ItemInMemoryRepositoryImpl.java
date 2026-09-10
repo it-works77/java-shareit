@@ -1,13 +1,12 @@
 package ru.practicum.shareit.item.repository;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exceptions.EntityNotFoundException;
+import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class ItemInMemoryRepositoryImpl implements ItemRepository {
@@ -27,16 +26,16 @@ public class ItemInMemoryRepositoryImpl implements ItemRepository {
             throw new IllegalArgumentException("itemId должен быть задан");
         }
 
-        Item modifiedItem = items.get(item.getId());
-        if (modifiedItem == null) {
+        Item existingItem = items.get(item.getId());
+        if (existingItem == null) {
             throw new EntityNotFoundException("Вещь не найдена по id=%s".formatted(item.getId()));
         }
 
-        modifiedItem.setName(item.getName());
-        modifiedItem.setDescription(item.getDescription());
-        modifiedItem.setAvailable(item.isAvailable());
+        Optional.ofNullable(item.getName()).ifPresent(existingItem::setName);
+        Optional.ofNullable(item.getDescription()).ifPresent(existingItem::setDescription);
+        Optional.ofNullable(item.getAvailable()).ifPresent(existingItem::setAvailable);
 
-        return modifiedItem;
+        return existingItem;
     }
 
     @Override

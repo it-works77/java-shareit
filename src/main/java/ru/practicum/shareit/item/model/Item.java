@@ -13,6 +13,16 @@ public class Item {
     Long id;
     String name;
     String description;
-    boolean available;
+    Boolean available;
     Long ownerId;
+
+    public static Item of(Item item) {
+        return Item.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .ownerId(item.getOwnerId())
+                .build();
+    }
 }

@@ -6,7 +6,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemRequestDto;
+import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
+import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 
 import java.util.List;
@@ -24,9 +25,9 @@ public class ItemController {
 
     @PostMapping
     public ItemResponseDto add(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-                               @Valid @RequestBody ItemRequestDto itemRequestDto) {
+                               @Valid @RequestBody ItemCreateRequestDto itemCreateRequestDto) {
         // TODO catch exc MissingRequestHeaderException
-        return itemService.addByUserId(userId, itemRequestDto);
+        return itemService.addByUserId(userId, itemCreateRequestDto);
     }
 
     @GetMapping("/{itemId}")
@@ -36,7 +37,7 @@ public class ItemController {
 
     @GetMapping("/search")
     public List<ItemResponseDto> search(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-                                  @RequestParam(name = "text") @NotBlank String text) {
+                                  @RequestParam(name = "text") String text) {
         return itemService.search(userId, text);
     }
 
@@ -47,9 +48,9 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemResponseDto update(@PathVariable Long itemId,
-                                  @Valid @RequestBody ItemRequestDto itemRequestDto) {
-        return itemService.updateById(itemId, itemRequestDto);
+    public ItemResponseDto update(@PathVariable @Positive Long itemId,
+                                  @Valid @RequestBody ItemUpdateRequestDto itemUpdateRequestDto) {
+        return itemService.updateById(itemId, itemUpdateRequestDto);
     }
 
     @DeleteMapping("/{itemId}")

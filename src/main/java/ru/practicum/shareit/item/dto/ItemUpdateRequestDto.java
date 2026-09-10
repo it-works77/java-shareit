@@ -8,7 +8,7 @@ import lombok.Data;
  */
 
 @Data
-public class ItemRequestDto {
+public class ItemUpdateRequestDto {
     String name;
     String description;
     Boolean available;

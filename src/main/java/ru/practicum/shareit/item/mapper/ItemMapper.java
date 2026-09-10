@@ -2,17 +2,26 @@ package ru.practicum.shareit.item.mapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.item.dto.ItemRequestDto;
+import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
+import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.model.Item;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemMapper {
-    public static Item mapItemRequestDtoToItem(ItemRequestDto itemRequestDto) {
+    public static Item mapItemCreateRequestDtoToItem(ItemCreateRequestDto itemCreateRequestDto) {
         return Item.builder()
-                .name(itemRequestDto.getName())
-                .description(itemRequestDto.getDescription())
-                .available(itemRequestDto.getAvailable())
+                .name(itemCreateRequestDto.getName())
+                .description(itemCreateRequestDto.getDescription())
+                .available(itemCreateRequestDto.getAvailable())
+                .build();
+    }
+
+    public static Item mapItemUpdateRequestDtoToItem(ItemUpdateRequestDto itemUpdateRequestDto) {
+        return Item.builder()
+                .name(itemUpdateRequestDto.getName())
+                .description(itemUpdateRequestDto.getDescription())
+                .available(itemUpdateRequestDto.getAvailable())
                 .build();
     }
 
@@ -21,7 +30,7 @@ public class ItemMapper {
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
-                .available(item.isAvailable())
+                .available(item.getAvailable())
                 .build();
     }
 }

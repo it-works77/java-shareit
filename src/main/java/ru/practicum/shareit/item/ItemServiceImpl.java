@@ -3,8 +3,12 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.dto.ItemRequestDto;
+import ru.practicum.shareit.exception.EntityNotFoundException;
+import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
+import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 
 import java.util.List;
@@ -16,33 +20,55 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
 
     @Override
-    public ItemResponseDto addByUserId(Long userId, ItemRequestDto itemRequestDto) {
-        return null;
+    public ItemResponseDto addByUserId(Long userId, ItemCreateRequestDto itemCreateRequestDto) {
+        log.info("Add item: itemDto: {}", itemCreateRequestDto);
+        Item item = ItemMapper.mapItemCreateRequestDtoToItem(itemCreateRequestDto);
+        item.setOwnerId(userId);
+        itemRepository.add(item);
+        return ItemMapper.mapItemToItemResponseDto(item);
     }
 
     @Override
-    public ItemResponseDto updateById(Long id, ItemRequestDto itemRequestDto) {
-        // TODO Репозиторий сохраняет все поля без проверки. Реализовать корректное состояние Item для PATCH
+    public ItemResponseDto updateById(Long id, ItemUpdateRequestDto itemUpdateRequestDto) {
+        itemRepository.get(id).orElseThrow(
+                () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
+        itemRepository.update(ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto));
+
         return null;
     }
 
     @Override
     public ItemResponseDto get(Long id) {
-        return null;
+        log.info("Get item. ItemId = %d".formatted(id));
+        Item item = itemRepository.get(id).orElseThrow(
+                () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
+        return ItemMapper.mapItemToItemResponseDto(item);
     }
 
     @Override
     public List<ItemResponseDto> getAllByUserId(Long userId) {
-        return List.of();
+        log.info("Get user items. UserId = %d".formatted(userId));
+        List<Item> userItems = itemRepository.getAllByUserId(userId);
+        return userItems.stream()
+                .map(ItemMapper::mapItemToItemResponseDto)
+                .toList();
     }
 
     @Override
     public List<ItemResponseDto> search(Long userId, String text) {
-        return List.of();
+        List<Item> userItems = itemRepository.search(userId, text);
+        return userItems.stream()
+                .map(ItemMapper::mapItemToItemResponseDto)
+                .toList();
     }
 
     @Override
-    public boolean remove(Long id) {
-        return false;
+    public void remove(Long id) {
+        log.info("Delete item. ItemId = %d".formatted(id));
+        if (itemRepository.remove(id)) {
+            log.info("Item deleted. ItemId = %d".formatted(id));
+        } else {
+            throw new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id));
+        }
     }
 }
