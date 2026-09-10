@@ -34,8 +34,8 @@ public class ItemServiceImpl implements ItemService {
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
         Item item = ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto);
         item.setId(id);
-        itemRepository.update(item);
-        return ItemMapper.mapItemToItemResponseDto(item);
+        Item updatedItem = itemRepository.update(item);
+        return ItemMapper.mapItemToItemResponseDto(updatedItem);
     }
 
     @Override
@@ -57,6 +57,8 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponseDto> search(Long userId, String text) {
+        if (text.isBlank()) return List.of();
+
         List<Item> userItems = itemRepository.search(userId, text);
         return userItems.stream()
                 .map(ItemMapper::mapItemToItemResponseDto)

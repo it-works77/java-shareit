@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public class ItemInMemoryRepositoryImpl implements ItemRepository {
     private final HashMap<Long, Item> items = new HashMap<>();
-    private Long currentItemId = 0L;
+    private Long currentItemId = 1L;
 
     @Override
     public Item add(Item item) {

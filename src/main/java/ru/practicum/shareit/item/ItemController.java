@@ -26,7 +26,6 @@ public class ItemController {
     @PostMapping
     public ItemResponseDto add(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                @Valid @RequestBody ItemCreateRequestDto itemCreateRequestDto) {
-        // TODO catch exc MissingRequestHeaderException
         return itemService.addByUserId(userId, itemCreateRequestDto);
     }
 
