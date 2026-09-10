@@ -38,6 +38,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErrorResponse> handleIncorrectRequestErrors(Exception ex) {
+        ErrorResponse body = ErrorResponse.builder()
+                .message("Ошибка парсинга запроса")
+                .details(ex.getMessage())
+                .build();
+        log.warn("Ошибка парсинга запроса: {}", ex.getMessage());
+        log.debug("Ошибка парсинга запроса", ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -51,28 +62,6 @@ public class GlobalExceptionHandler {
         log.warn("Ошибка валидации: {}", errors);
         log.debug("Ошибка валидации", ex);
         return ResponseEntity.badRequest().body(body);
-    }
-
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchErrors(MethodArgumentTypeMismatchException ex) {
-        ErrorResponse body = ErrorResponse.builder()
-                .message("Неверный тип аргумента")
-                .details(ex.getMessage())
-                .build();
-        log.warn("Неверный тип аргумента: {}", ex.getMessage());
-        log.debug("Неверный тип аргумента", ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableErrors(HttpMessageNotReadableException ex) {
-        ErrorResponse body = ErrorResponse.builder()
-                .message("Ошибка парсинга запроса")
-                .details(ex.getMessage())
-                .build();
-        log.warn("Ошибка парсинга запроса: {}", ex.getMessage());
-        log.debug("Ошибка парсинга запроса", ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(Exception.class)

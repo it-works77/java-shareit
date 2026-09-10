@@ -12,6 +12,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -29,12 +30,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemResponseDto updateById(Long id, ItemUpdateRequestDto itemUpdateRequestDto) {
-        itemRepository.get(id).orElseThrow(
-                () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
-        Item item = ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto);
-        item.setId(id);
-        Item updatedItem = itemRepository.update(item);
+    public ItemResponseDto updateById(Long userId, Long itemId, ItemUpdateRequestDto itemUpdateRequestDto) {
+        Item existingItem = itemRepository.get(itemId).orElseThrow(
+                () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
+
+        if (!Objects.equals(userId, existingItem.getOwnerId())) {
+            throw new EntityNotFoundException("У пользователя userId=%s нет вещи с id=%s"
+                    .formatted(userId, itemId));
+        }
+
+        Item newItem = ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto);
+        newItem.setId(itemId);
+
+        Item updatedItem = itemRepository.update(newItem);
         return ItemMapper.mapItemToItemResponseDto(updatedItem);
     }
 

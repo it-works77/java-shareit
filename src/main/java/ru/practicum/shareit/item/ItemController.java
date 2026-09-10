@@ -41,15 +41,17 @@ public class ItemController {
     }
 
     @GetMapping
+
     public List<ItemResponseDto> getAllByUserId(@RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
         // TODO Move X-Sharer-User-Id to app config
         return itemService.getAllByUserId(userId);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemResponseDto update(@PathVariable @Positive Long itemId,
+    public ItemResponseDto update(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+                                  @PathVariable @Positive Long itemId,
                                   @Valid @RequestBody ItemUpdateRequestDto itemUpdateRequestDto) {
-        return itemService.updateById(itemId, itemUpdateRequestDto);
+        return itemService.updateById(userId, itemId, itemUpdateRequestDto);
     }
 
     @DeleteMapping("/{itemId}")
