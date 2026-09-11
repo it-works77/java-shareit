@@ -1,11 +1,13 @@
 package ru.practicum.shareit.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -74,6 +76,35 @@ public class GlobalExceptionHandler {
         log.warn("Ошибка валидации: {}", errors);
         log.debug("Ошибка валидации", ex);
         return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation -> {
+            String path = violation.getPropertyPath().toString();
+            String field = path.contains(".") ? path.substring(path.lastIndexOf('.') + 1) : path;
+            errors.put(field, violation.getMessage());
+        });
+
+        ValidationErrorResponse body = ValidationErrorResponse.builder()
+                .message("Ошибка валидации")
+                .errors(errors)
+                .build();
+        log.warn("Ошибка валидации: {}", errors);
+        log.debug("Ошибка валидации", ex);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestParam(MissingServletRequestParameterException ex) {
+        ErrorResponse body = ErrorResponse.builder()
+                .message("Отсутствует обязательный параметр")
+                .details(ex.getMessage())
+                .build();
+        log.warn("Отсутствует обязательный параметр: {}", ex.getMessage());
+        log.debug("Отсутствует обязательный параметр", ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(Exception.class)

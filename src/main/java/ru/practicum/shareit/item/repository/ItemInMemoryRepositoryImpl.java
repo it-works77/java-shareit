@@ -60,13 +60,16 @@ public class ItemInMemoryRepositoryImpl implements ItemRepository {
 
     @Override
     public List<Item> search(Long userId, String text) {
-        // Тест проверяет case insensitive поиск
         String textInLowerCase = text.toLowerCase();
         return items.values().stream()
                 .filter(item -> Objects.equals(userId, item.getOwnerId()))
-                .filter(item -> item.getName().toLowerCase().contains(textInLowerCase)
-                        || item.getDescription().toLowerCase().contains(textInLowerCase))
-                // ТЗ: Проверьте, что поиск возвращает только доступные для аренды вещи
+                .filter(item -> {
+                    if (item.getName() == null || item.getDescription() == null) {
+                        throw new IllegalArgumentException("name и description не должны быть null");
+                    }
+                    return item.getName().toLowerCase().contains(textInLowerCase)
+                            || item.getDescription().toLowerCase().contains(textInLowerCase);
+                })
                 .filter(Item::getAvailable)
                 .toList();
     }
