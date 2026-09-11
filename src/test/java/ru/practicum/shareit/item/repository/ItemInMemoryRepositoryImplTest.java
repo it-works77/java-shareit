@@ -174,7 +174,7 @@ class ItemInMemoryRepositoryImplTest {
         List<Item> found = repository.search(1L, "drill");
 
         assertEquals(1, found.size());
-        assertEquals("Drill", found.get(0).getName());
+        assertEquals("Drill", found.getFirst().getName());
     }
 
     @Test
@@ -187,7 +187,7 @@ class ItemInMemoryRepositoryImplTest {
         List<Item> found = repository.search(1L, "POWER");
 
         assertEquals(1, found.size());
-        assertEquals("Drill", found.get(0).getName());
+        assertEquals("Drill", found.getFirst().getName());
     }
 
     @Test
@@ -200,7 +200,7 @@ class ItemInMemoryRepositoryImplTest {
         List<Item> found = repository.search(1L, "drill");
 
         assertEquals(1, found.size());
-        assertEquals(1L, found.get(0).getOwnerId());
+        assertEquals(1L, found.getFirst().getOwnerId());
     }
 
     @Test
@@ -213,7 +213,7 @@ class ItemInMemoryRepositoryImplTest {
         List<Item> found = repository.search(1L, "drill");
 
         assertEquals(1, found.size());
-        assertTrue(found.get(0).getAvailable());
+        assertTrue(found.getFirst().getAvailable());
     }
 
     @Test

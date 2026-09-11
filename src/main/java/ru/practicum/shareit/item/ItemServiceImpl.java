@@ -11,12 +11,9 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.dto.UserResponseDto;
-import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,7 +28,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = ItemMapper.mapItemCreateRequestDtoToItem(itemCreateRequestDto);
         item.setOwnerId(userId);
 
-        // If user doesn't exists then throws EntityNotFoundException as required
+        // If user doesn't exist then throws EntityNotFoundException as required
         userService.get(userId);
 
         itemRepository.add(item);

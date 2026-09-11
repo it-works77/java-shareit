@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.repository;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.EntityAlreadyExistsException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
-import ru.practicum.shareit.exception.ErrorResponse;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.*;
