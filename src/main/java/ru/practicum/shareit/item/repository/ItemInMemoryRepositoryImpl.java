@@ -4,14 +4,11 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class ItemInMemoryRepositoryImpl implements ItemRepository {
-    private final HashMap<Long, Item> items = new HashMap<>();
+    private final Map<Long, Item> items = new HashMap<>();
     private Long currentItemId = 1L;
 
     @Override
@@ -23,9 +20,6 @@ public class ItemInMemoryRepositoryImpl implements ItemRepository {
 
     @Override
     public Item update(Item item) {
-        if (item.getId() == null) {
-            throw new IllegalArgumentException("itemId должен быть задан");
-        }
 
         Item existingItem = items.get(item.getId());
         if (existingItem == null) {

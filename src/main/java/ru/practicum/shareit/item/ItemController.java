@@ -20,10 +20,11 @@ import java.util.List;
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
+    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @PostMapping
-    public ItemResponseDto add(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public ItemResponseDto add(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
                                @Valid @RequestBody ItemCreateRequestDto itemCreateRequestDto) {
         return itemService.addByUserId(userId, itemCreateRequestDto);
     }
@@ -34,20 +35,19 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemResponseDto> search(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public List<ItemResponseDto> search(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
                                   @RequestParam(name = "text") String text) {
         return itemService.search(userId, text);
     }
 
     @GetMapping
 
-    public List<ItemResponseDto> getAllByUserId(@RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
-        // TODO Move X-Sharer-User-Id to app config
+    public List<ItemResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
         return itemService.getAllByUserId(userId);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemResponseDto update(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public ItemResponseDto update(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
                                   @PathVariable @Positive Long itemId,
                                   @Valid @RequestBody ItemUpdateRequestDto itemUpdateRequestDto) {
         return itemService.updateById(userId, itemId, itemUpdateRequestDto);

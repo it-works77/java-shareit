@@ -47,13 +47,6 @@ class ItemInMemoryRepositoryImplTest {
     }
 
     @Test
-    void update_whenIdIsNull_throwsIllegalArgumentException() {
-        Item item = Item.builder().id(null).name("Drill").description("Power drill").available(true).ownerId(1L).build();
-
-        assertThrows(IllegalArgumentException.class, () -> repository.update(item));
-    }
-
-    @Test
     void update_whenItemNotFound_throwsEntityNotFoundException() {
         Item item = Item.builder().id(999L).name("Drill").description("Power drill").available(true).ownerId(1L).build();
 

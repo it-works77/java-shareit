@@ -9,10 +9,10 @@ import lombok.Data;
 @Builder
 public class UserResponseDto {
     @Positive
-    Long id;
+    private Long id;
 
-    String name;
+    private String name;
 
     @Email
-    String email;
+    private String email;
 }

@@ -10,8 +10,8 @@ import lombok.Data;
 @Data
 @Builder
 public class ItemResponseDto {
-    Long id;
-    String name;
-    String description;
-    boolean available;
+    private Long id;
+    private String name;
+    private String description;
+    private boolean available;
 }

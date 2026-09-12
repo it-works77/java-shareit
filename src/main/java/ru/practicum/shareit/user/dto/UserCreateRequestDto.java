@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 public class UserCreateRequestDto {
     @NotBlank
-    String name;
+    private String name;
 
     @Email
     @NotNull
-    String email;
+    private String email;
 }

@@ -26,9 +26,6 @@ public class UserInMemoryRepositoryImpl implements UserRepository {
 
     @Override
     public User update(User user) {
-        if (user.getId() == null) {
-            throw new IllegalArgumentException("userId должен быть задан");
-        }
 
         User existingUser = users.get(user.getId());
         if (existingUser == null) {

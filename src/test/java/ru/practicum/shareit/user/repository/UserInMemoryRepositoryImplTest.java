@@ -55,13 +55,6 @@ class UserInMemoryRepositoryImplTest {
     }
 
     @Test
-    void update_whenIdIsNull_throwsIllegalArgumentException() {
-        User user = User.builder().id(null).name("John").email("john@example.com").build();
-
-        assertThrows(IllegalArgumentException.class, () -> repository.update(user));
-    }
-
-    @Test
     void update_whenUserNotFound_throwsEntityNotFoundException() {
         User user = User.builder().id(999L).name("John").email("john@example.com").build();
 

@@ -9,9 +9,9 @@ import lombok.Data;
 
 @Data
 public class ItemUpdateRequestDto {
-    String name;
-    String description;
-    Boolean available;
+    private String name;
+    private String description;
+    private Boolean available;
 
     @AssertTrue(message = "Необходимо указать, как минимум, одно поле для обновления")
     public boolean isAtLeastOneFieldProvided() {

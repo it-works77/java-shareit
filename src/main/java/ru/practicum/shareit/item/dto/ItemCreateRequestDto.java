@@ -11,9 +11,9 @@ import lombok.Data;
 @Data
 public class ItemCreateRequestDto {
     @NotBlank
-    String name;
+    private String name;
     @NotBlank
-    String description;
+    private String description;
     @NotNull
-    Boolean available;
+    private Boolean available;
 }

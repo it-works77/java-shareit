@@ -37,6 +37,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponseDto updateById(Long userId, Long itemId, ItemUpdateRequestDto itemUpdateRequestDto) {
+        if (userId == null || itemId == null) {
+            throw new IllegalArgumentException("Аргументы должны быть заданы: userId=%d, itemId=%d"
+                    .formatted(userId, itemId));
+        }
+
         Item existingItem = itemRepository.get(itemId).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
 
@@ -54,7 +59,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponseDto get(Long id) {
-        log.info("Get item. ItemId = %d".formatted(id));
+        log.info("Get item. ItemId={}", id);
         Item item = itemRepository.get(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
         return ItemMapper.mapItemToItemResponseDto(item);
@@ -62,7 +67,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemResponseDto> getAllByUserId(Long userId) {
-        log.info("Get user items. UserId = %d".formatted(userId));
+        log.info("Get user items. UserId={}", userId);
         List<Item> userItems = itemRepository.getAllByUserId(userId);
         return userItems.stream()
                 .map(ItemMapper::mapItemToItemResponseDto)
@@ -81,9 +86,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public void remove(Long id) {
-        log.info("Delete item. ItemId = %d".formatted(id));
+        log.info("Delete item. ItemId={}", id);
         if (itemRepository.remove(id)) {
-            log.info("Item deleted. ItemId = %d".formatted(id));
+            log.info("Item deleted. ItemId={}", id);
         } else {
             throw new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id));
         }

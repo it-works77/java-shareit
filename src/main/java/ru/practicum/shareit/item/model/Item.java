@@ -10,11 +10,11 @@ import lombok.Data;
 @Data
 @Builder
 public class Item {
-    Long id;
-    String name;
-    String description;
-    Boolean available;
-    Long ownerId;
+    private Long id;
+    private String name;
+    private String description;
+    private Boolean available;
+    private Long ownerId;
 
     public static Item of(Item item) {
         return Item.builder()

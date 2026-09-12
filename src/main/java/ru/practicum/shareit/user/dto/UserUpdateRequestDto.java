@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class UserUpdateRequestDto {
-    String name;
+    private String name;
 
     @Email
-    String email;
+    private String email;
 
     @AssertTrue(message = "Необходимо указать, как минимум, одно поле для обновления")
     public boolean isAtLeastOneFieldProvided() {

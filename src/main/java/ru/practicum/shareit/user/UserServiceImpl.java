@@ -31,6 +31,10 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto updateById(Long userId, UserUpdateRequestDto userUpdateRequestDto) {
         log.info("Update user: userDto={}", userUpdateRequestDto);
 
+        if (userId == null) {
+            throw new IllegalArgumentException("userId должен быть задан");
+        }
+
         User existingUser = userRepository.get(userId).orElseThrow(
                 () -> new EntityNotFoundException("Пользователь не найден по id=%s".formatted(userId)));
 
@@ -62,7 +66,7 @@ public class UserServiceImpl implements UserService {
     public void remove(Long id) {
         log.info("Remove user: userId={}", id);
         if (userRepository.remove(id)) {
-            log.info("User deleted. UserId = %d".formatted(id));
+            log.info("User deleted. UserId={}", id);
         } else {
             throw new EntityNotFoundException("Пользователь не найден по id=%s".formatted(id));
         }
