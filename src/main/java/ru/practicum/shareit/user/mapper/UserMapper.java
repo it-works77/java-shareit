@@ -16,13 +16,6 @@ public class UserMapper {
                 .build();
     }
 
-    public static User mapUserUpdateRequestDtoToUser(UserUpdateRequestDto userUpdateRequestDto) {
-        return User.builder()
-                .name(userUpdateRequestDto.getName())
-                .email(userUpdateRequestDto.getEmail())
-                .build();
-    }
-
     public static UserResponseDto mapUserToUserResponseDto(User user) {
         return UserResponseDto.builder()
                 .id(user.getId())

@@ -15,7 +15,7 @@ public interface ItemService {
 
     List<ItemResponseDto> getAllByUserId(Long userId);
 
-    List<ItemResponseDto> search(Long userId, String text);
+    List<ItemResponseDto> search(String text);
 
     void remove(Long id);
 }

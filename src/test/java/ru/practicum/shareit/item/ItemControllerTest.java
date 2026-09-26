@@ -262,7 +262,7 @@ class ItemControllerTest {
 
     @Test
     void search_validRequest_returns200() throws Exception {
-        when(itemService.search(anyLong(), any()))
+        when(itemService.search(any()))
                 .thenReturn(List.of(responseDto));
 
         mockMvc.perform(get("/items/search")

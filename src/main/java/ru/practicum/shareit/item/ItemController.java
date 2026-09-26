@@ -37,7 +37,7 @@ public class ItemController {
     @GetMapping("/search")
     public List<ItemResponseDto> search(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
                                   @RequestParam(name = "text") String text) {
-        return itemService.search(userId, text);
+        return itemService.search(text);
     }
 
     @GetMapping

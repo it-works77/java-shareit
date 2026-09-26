@@ -17,14 +17,6 @@ public class ItemMapper {
                 .build();
     }
 
-    public static Item mapItemUpdateRequestDtoToItem(ItemUpdateRequestDto itemUpdateRequestDto) {
-        return Item.builder()
-                .name(itemUpdateRequestDto.getName())
-                .description(itemUpdateRequestDto.getDescription())
-                .available(itemUpdateRequestDto.getAvailable())
-                .build();
-    }
-
     public static ItemResponseDto mapItemToItemResponseDto(Item item) {
         return ItemResponseDto.builder()
                 .id(item.getId())

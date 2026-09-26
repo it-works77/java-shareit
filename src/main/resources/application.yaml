@@ -18,8 +18,8 @@ spring:
 
   datasource:
     username: "dbuser"
-    password: "12345"
-    url: "jdbc:postgresql://localhost:5432/later"
+    password: "Qwerty$4"
+    url: "jdbc:postgresql://localhost:5432/shareit"
     driver-class-name: "org.postgresql.Driver"
 
 logging:

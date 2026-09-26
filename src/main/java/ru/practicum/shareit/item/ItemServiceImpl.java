@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,26 +24,28 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
 
     @Override
+    @Transactional
     public ItemResponseDto addByUserId(Long userId, ItemCreateRequestDto itemCreateRequestDto) {
         log.info("Add item: itemDto: {}", itemCreateRequestDto);
-        Item item = ItemMapper.mapItemCreateRequestDtoToItem(itemCreateRequestDto);
-        item.setOwnerId(userId);
-
         // If user doesn't exist then throws EntityNotFoundException as required
         userService.get(userId);
 
-        itemRepository.add(item);
+        Item item = ItemMapper.mapItemCreateRequestDtoToItem(itemCreateRequestDto);
+        item.setOwnerId(userId);
+
+        itemRepository.save(item);
         return ItemMapper.mapItemToItemResponseDto(item);
     }
 
     @Override
+    @Transactional
     public ItemResponseDto updateById(Long userId, Long itemId, ItemUpdateRequestDto itemUpdateRequestDto) {
         if (userId == null || itemId == null) {
-            throw new IllegalArgumentException("Аргументы должны быть заданы: userId=%d, itemId=%d"
+            throw new IllegalArgumentException("Аргументы должны быть заданы: userId=%s, itemId=%s"
                     .formatted(userId, itemId));
         }
 
-        Item existingItem = itemRepository.get(itemId).orElseThrow(
+        Item existingItem = itemRepository.findById(itemId).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
 
         if (!Objects.equals(userId, existingItem.getOwnerId())) {
@@ -50,47 +53,59 @@ public class ItemServiceImpl implements ItemService {
                     .formatted(userId, itemId));
         }
 
-        Item newItem = ItemMapper.mapItemUpdateRequestDtoToItem(itemUpdateRequestDto);
-        newItem.setId(itemId);
+        // Обновляем только не null поля
+        if (itemUpdateRequestDto.getName() != null) {
+            existingItem.setName(itemUpdateRequestDto.getName());
+        }
 
-        Item updatedItem = itemRepository.update(newItem);
+        if (itemUpdateRequestDto.getDescription() != null) {
+            existingItem.setDescription(itemUpdateRequestDto.getDescription());
+        }
+
+        if (itemUpdateRequestDto.getAvailable() != null) {
+            existingItem.setAvailable(itemUpdateRequestDto.getAvailable());
+        }
+
+        Item updatedItem = itemRepository.save(existingItem);
         return ItemMapper.mapItemToItemResponseDto(updatedItem);
     }
 
     @Override
     public ItemResponseDto get(Long id) {
         log.info("Get item. ItemId={}", id);
-        Item item = itemRepository.get(id).orElseThrow(
+        Item item = itemRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
         return ItemMapper.mapItemToItemResponseDto(item);
     }
 
     @Override
-    public List<ItemResponseDto> getAllByUserId(Long userId) {
-        log.info("Get user items. UserId={}", userId);
-        List<Item> userItems = itemRepository.getAllByUserId(userId);
+    public List<ItemResponseDto> getAllByUserId(Long ownerId) {
+        log.info("Get user items. UserId={}", ownerId);
+        List<Item> userItems = itemRepository.getAllByOwnerId(ownerId);
         return userItems.stream()
                 .map(ItemMapper::mapItemToItemResponseDto)
                 .toList();
     }
 
     @Override
-    public List<ItemResponseDto> search(Long userId, String text) {
+    public List<ItemResponseDto> search(String text) {
         if (text.isBlank()) return List.of();
 
-        List<Item> userItems = itemRepository.search(userId, text);
+        List<Item> userItems = itemRepository.findAllByText(text);
         return userItems.stream()
                 .map(ItemMapper::mapItemToItemResponseDto)
                 .toList();
     }
 
     @Override
+    @Transactional
     public void remove(Long id) {
         log.info("Delete item. ItemId={}", id);
-        if (itemRepository.remove(id)) {
-            log.info("Item deleted. ItemId={}", id);
-        } else {
-            throw new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id));
-        }
+
+        itemRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
+
+        itemRepository.deleteById(id);
+        log.info("Item deleted. ItemId={}", id);
     }
 }
