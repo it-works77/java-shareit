@@ -104,7 +104,40 @@ public class GlobalExceptionHandler {
                 .build();
         log.warn("Отсутствует обязательный параметр: {}", ex.getMessage());
         log.debug("Отсутствует обязательный параметр", ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(ItemIsNotAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleItemIsNotAvailable(ItemIsNotAvailableException ex) {
+        ErrorResponse body = ErrorResponse.builder()
+                .message("Неверный статус вещи")
+                .details(ex.getMessage())
+                .build();
+        log.warn("Неверный статус вещи: {}", ex.getMessage());
+        log.debug("Неверный статус вещи", ex);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+        ErrorResponse body = ErrorResponse.builder()
+                .message("Неверное состояние")
+                .details(ex.getMessage())
+                .build();
+        log.warn("Неверное состояние: {}", ex.getMessage());
+        log.debug("Неверное состояние", ex);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        ErrorResponse body = ErrorResponse.builder()
+                .message("Доступ запрещен")
+                .details(ex.getMessage())
+                .build();
+        log.warn("Доступ запрещен: {}", ex.getMessage());
+        log.debug("Доступ запрещен", ex);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
     @ExceptionHandler(Exception.class)

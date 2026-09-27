@@ -15,4 +15,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "or lower(i.description) like lower(concat('%', ?1, '%')))" +
             "and i.available = true")
     List<Item> findAllByText(String text);
+
+    boolean existsByOwnerId(Long ownerId);
 }
