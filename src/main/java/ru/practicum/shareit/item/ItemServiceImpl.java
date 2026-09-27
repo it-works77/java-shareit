@@ -4,15 +4,18 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
 import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,6 +24,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final BookingRepository bookingRepository;
     private final UserService userService;
 
     @Override
@@ -79,11 +83,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemResponseDto> getAllByUserId(Long ownerId) {
+    public List<ItemWithBookingDatesResponseDto> getAllByUserId(Long ownerId) {
         log.info("Get user items. UserId={}", ownerId);
         List<Item> userItems = itemRepository.getAllByOwnerId(ownerId);
-        return userItems.stream()
-                .map(ItemMapper::mapItemToItemResponseDto)
+
+        List<ItemWithBookingDatesResponseDto> result = userItems.stream()
+                .map(ItemMapper::mapItemToItemWithBookingDatesResponseDto)
+                .toList();
+
+        var now = LocalDateTime.now();
+        return result.stream()
+                .map(item -> {
+                    item.setLastBooking(bookingRepository.getLastBookingEndDateByItemId(item.getId(), now));
+                    item.setNextBooking(bookingRepository.getNextBookingStartDateByItemId(item.getId(), now));
+                    return item;
+                })
                 .toList();
     }
 

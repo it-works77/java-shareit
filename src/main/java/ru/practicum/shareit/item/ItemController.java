@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
 import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
 
 import java.util.List;
 
@@ -41,8 +42,7 @@ public class ItemController {
     }
 
     @GetMapping
-
-    public List<ItemResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
+    public List<ItemWithBookingDatesResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
         return itemService.getAllByUserId(userId);
     }
 

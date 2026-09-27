@@ -7,23 +7,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,6 +33,9 @@ class ItemServiceImplTest {
 
     @Mock
     private ItemRepository itemRepository;
+
+    @Mock
+    private BookingRepository bookingRepository;
 
     @Mock
     private UserService userService;
@@ -214,26 +216,48 @@ class ItemServiceImplTest {
     }
 
     @Test
-    @DisplayName("getAllByUserId: should return all user items")
+    @DisplayName("getAllByUserId: should return user items with last and next bookings")
     void getAllByUserId_shouldReturnUserItems() {
         Long ownerId = 1L;
-        List<Item> items = List.of(
-                buildItem(1L, ownerId, "Дрель", "Ударная дрель", true),
-                buildItem(2L, ownerId, "Отвертка", "Крестовая отвертка", false)
-        );
+        Item firstItem = buildItem(1L, ownerId, "Дрель", "Ударная дрель", true);
+        Item secondItem = buildItem(2L, ownerId, "Отвертка", "Крестовая отвертка", false);
+        List<Item> items = List.of(firstItem, secondItem);
+
+        LocalDateTime lastBookingFirst = LocalDateTime.of(2025, 1, 1, 12, 0);
+        LocalDateTime nextBookingFirst = LocalDateTime.of(2025, 2, 1, 12, 0);
+        LocalDateTime lastBookingSecond = LocalDateTime.of(2025, 1, 15, 12, 0);
 
         when(itemRepository.getAllByOwnerId(ownerId)).thenReturn(items);
 
-        List<ItemResponseDto> response = itemService.getAllByUserId(ownerId);
+        when(bookingRepository.getLastBookingEndDateByItemId(eq(1L), any(LocalDateTime.class)))
+                .thenReturn(lastBookingFirst);
+        when(bookingRepository.getNextBookingStartDateByItemId(eq(1L), any(LocalDateTime.class)))
+                .thenReturn(nextBookingFirst);
+        when(bookingRepository.getLastBookingEndDateByItemId(eq(2L), any(LocalDateTime.class)))
+                .thenReturn(lastBookingSecond);
+        when(bookingRepository.getNextBookingStartDateByItemId(eq(2L), any(LocalDateTime.class)))
+                .thenReturn(null);
+
+        List<ItemWithBookingDatesResponseDto> response = itemService.getAllByUserId(ownerId);
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        assertEquals("Дрель", response.get(0).getName());
-        assertEquals("Отвертка", response.get(1).getName());
-        assertEquals(Boolean.FALSE, response.get(1).getAvailable());
+
+        ItemWithBookingDatesResponseDto first = response.get(0);
+        assertEquals("Дрель", first.getName());
+        assertEquals(Boolean.TRUE, first.getAvailable());
+        assertEquals(lastBookingFirst, first.getLastBooking());
+        assertEquals(nextBookingFirst, first.getNextBooking());
+
+        ItemWithBookingDatesResponseDto second = response.get(1);
+        assertEquals("Отвертка", second.getName());
+        assertEquals(Boolean.FALSE, second.getAvailable());
+        assertEquals(lastBookingSecond, second.getLastBooking());
+        assertNull(second.getNextBooking());
 
         verify(itemRepository).getAllByOwnerId(ownerId);
     }
+
 
     @Test
     @DisplayName("search: should return empty list for blank text")

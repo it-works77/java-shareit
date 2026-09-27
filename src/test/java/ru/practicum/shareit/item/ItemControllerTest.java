@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
+import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ class ItemControllerTest {
     private ItemCreateRequestDto validCreateDto;
     private ItemUpdateRequestDto validUpdateDto;
     private ItemResponseDto responseDto;
+    private ItemWithBookingDatesResponseDto responseDtoWithBookingDates;
 
     @BeforeEach
     void setUp() {
@@ -52,6 +54,15 @@ class ItemControllerTest {
                 .name("Drill")
                 .description("Power drill")
                 .available(true)
+                .build();
+
+        responseDtoWithBookingDates = ItemWithBookingDatesResponseDto.builder()
+                .id(1L)
+                .name("Drill")
+                .description("Power drill")
+                .available(true)
+                .lastBooking(null)
+                .nextBooking(null)
                 .build();
     }
 
@@ -300,7 +311,7 @@ class ItemControllerTest {
     @Test
     void getAllByUserId_validRequest_returns200() throws Exception {
         when(itemService.getAllByUserId(anyLong()))
-                .thenReturn(List.of(responseDto));
+                .thenReturn(List.of(responseDtoWithBookingDates));
 
         mockMvc.perform(get("/items")
                         .header(USER_ID_HEADER, 1))
