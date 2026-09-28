@@ -117,6 +117,46 @@ class BookingServiceImplTest {
         assertThat(savedBooking.getEnd()).isEqualTo(dto.getEnd());
     }
 
+    @Test
+    void create_whenItemHasOverlappingBooking_shouldThrowItemIsNotAvailableException() {
+        User user = createUser(1L);
+        Item item = createItem(2L, 3L, true);
+        BookingCreateRequestDto dto = createBookingRequest(1L, 2L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(itemRepository.findById(2L)).thenReturn(Optional.of(item));
+        when(bookingRepository.existsByItemIdAndStatusAndStartBeforeAndEndAfter(
+                eq(2L), eq(BookingStatus.APPROVED), eq(dto.getEnd()), eq(dto.getStart())))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> bookingService.create(dto))
+                .isInstanceOf(ItemIsNotAvailableException.class)
+                .hasMessage("Вещь itemId=2 недоступна для аренды: " +
+                        "есть подтвержденное бронирование на этот интервал времени");
+
+        verify(bookingRepository, never()).save(any());
+    }
+
+    @Test
+    void create_whenNoOverlappingBooking_shouldSaveBooking() {
+        User user = createUser(1L);
+        Item item = createItem(2L, 3L, true);
+        BookingCreateRequestDto dto = createBookingRequest(1L, 2L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(itemRepository.findById(2L)).thenReturn(Optional.of(item));
+        when(bookingRepository.existsByItemIdAndStatusAndStartBeforeAndEndAfter(
+                eq(2L), eq(BookingStatus.APPROVED), eq(dto.getEnd()), eq(dto.getStart())))
+                .thenReturn(false);
+
+        BookingResponseDto result = bookingService.create(dto);
+
+        assertThat(result).isNotNull();
+        verify(bookingRepository).existsByItemIdAndStatusAndStartBeforeAndEndAfter(
+                eq(2L), eq(BookingStatus.APPROVED), eq(dto.getEnd()), eq(dto.getStart()));
+        verify(bookingRepository).save(any(Booking.class));
+    }
+
     // ---------- updateApprovement ----------
 
     @Test
