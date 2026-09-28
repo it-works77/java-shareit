@@ -82,19 +82,27 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
 
+
         List<Comment> comments = commentRepository.findAllByItemId(id);
 
-        return ItemMapper.mapItemToItemGetByIdResponseDto(item,
+        // Предлагаю реализовать крайние бронирования и в GET /items и в GET /items/{itemId}
+        var now = LocalDateTime.now();
+        ItemGetByIdResponseDto result = ItemMapper.mapItemToItemGetByIdResponseDto(item,
                 comments.stream().map(CommentMapper::mapCommentToCommentResponseDto).toList());
+
+        result.setLastBooking(bookingRepository.getLastBookingEndDateByItemId(item.getId(), now));
+        result.setNextBooking(bookingRepository.getNextBookingStartDateByItemId(item.getId(), now));
+        return result;
+
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ItemGetAllResponseDto> getAllByUserId(Long ownerId) {
-        log.info("Get user items. UserId={}", ownerId);
-        List<Item> userItems = itemRepository.getAllByOwnerId(ownerId);
+        log.info("Get owner's items. UserId={}", ownerId);
+        List<Item> ownerItems = itemRepository.getAllByOwnerId(ownerId);
 
-        List<ItemGetAllResponseDto> result = userItems.stream()
+        List<ItemGetAllResponseDto> result = ownerItems.stream()
                 .map(ItemMapper::mapItemToItemWithBookingDatesResponseDto)
                 .toList();
 

@@ -28,15 +28,15 @@ public class ItemController {
         return itemService.get(itemId);
     }
 
+    @GetMapping
+    public List<ItemGetAllResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
+        return itemService.getAllByUserId(userId);
+    }
+
     @GetMapping("/search")
     public List<ItemResponseDto> search(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
                                   @RequestParam(name = "text") String text) {
         return itemService.search(text);
-    }
-
-    @GetMapping
-    public List<ItemGetAllResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
-        return itemService.getAllByUserId(userId);
     }
 
     @PatchMapping("/{itemId}")
