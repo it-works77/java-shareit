@@ -22,13 +22,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                     @Param("status") BookingStatus bookingStatus,
                                                     @Param("now") LocalDateTime now);
 
-    List<Booking> findAllByBookerIdAndStatusAndEndBeforeOrderByStartDesc(@Param("bookerId") Long bookerId,
-                                                                         @Param("status") BookingStatus bookingStatus,
-                                                                         @Param("now") LocalDateTime now);
+    List<Booking> findAllByBookerIdAndStatusAndEndBeforeOrderByStartDesc(Long bookerId,
+                                                                         BookingStatus bookingStatus,
+                                                                         LocalDateTime now);
 
-    List<Booking> findAllByBookerIdAndStatusAndStartAfterOrderByStartDesc(@Param("bookerId") Long bookerId,
-                                                                          @Param("status") BookingStatus bookingStatus,
-                                                                          @Param("now") LocalDateTime now);
+    List<Booking> findAllByBookerIdAndStatusAndStartAfterOrderByStartDesc(Long bookerId,
+                                                                          BookingStatus bookingStatus,
+                                                                          LocalDateTime now);
 
     @Query("SELECT b FROM Booking b " +
             "WHERE b.item.ownerId = :ownerId " +
@@ -81,8 +81,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                   @Param("now") LocalDateTime now);
 
 
-    List<Booking> findAllByBookerIdAndItemIdAndStatusAndEndBeforeOrderByEndDesc(@Param("bookerId") Long bookerId,
-                                                                                @Param("itemId") Long itemId,
-                                                                                @Param("status") BookingStatus bookingStatus,
-                                                                                @Param("now") LocalDateTime now);
+    List<Booking> findAllByBookerIdAndItemIdAndStatusAndEndBeforeOrderByEndDesc(Long bookerId,
+                                                                                Long itemId,
+                                                                                BookingStatus bookingStatus,
+                                                                                LocalDateTime now);
+
+    boolean existsByItemIdAndStatusAndStartBeforeAndEndAfter(Long itemId,
+                                                             BookingStatus status,
+                                                             LocalDateTime newEnd,
+                                                             LocalDateTime newStart);
 }

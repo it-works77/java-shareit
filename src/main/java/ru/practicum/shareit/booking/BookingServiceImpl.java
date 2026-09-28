@@ -52,6 +52,18 @@ public class BookingServiceImpl implements BookingService {
         }
         Booking booking = BookingMapper.mapBookingRequestDtoToBooking(bookingCreateRequestDto, item, user);
 
+        // проверить, что предмет действительно свободен на срок бронирования
+        // (время бронирования не пересекается с другими)
+        if (bookingRepository.existsByItemIdAndStatusAndStartBeforeAndEndAfter(booking.getItem().getId(),
+                APPROVED,
+                booking.getEnd(),
+                booking.getStart())
+        ) {
+            throw new ItemIsNotAvailableException("Вещь itemId=" + item.getId() + " недоступна для аренды: " +
+                    "есть подтвержденное бронирование на этот интервал времени");
+        }
+        ;
+
         bookingRepository.save(booking);
         log.info("Booking created: {}", booking);
 
@@ -99,8 +111,8 @@ public class BookingServiceImpl implements BookingService {
      * @param userId    ID of the user requesting the booking
      * @param bookingId ID of the booking to retrieve
      * @return the booking details as a {@link BookingResponseDto}
-     * @throws EntityNotFoundException  if no booking exists with the given {@code bookingId}
-     * @throws AccessDeniedException    if the user is neither the booker nor the owner of the item
+     * @throws EntityNotFoundException if no booking exists with the given {@code bookingId}
+     * @throws AccessDeniedException   if the user is neither the booker nor the owner of the item
      */
     @Override
     @Transactional(readOnly = true)
@@ -126,7 +138,7 @@ public class BookingServiceImpl implements BookingService {
      * @param bookerId the ID of the booker whose bookings are to be retrieved
      * @param state    the booking state used to filter the results
      * @return a list of {@link BookingResponseDto} objects matching the booker and state
-     * @throws EntityNotFoundException  if no user with the given {@code bookerId} exists
+     * @throws EntityNotFoundException if no user with the given {@code bookerId} exists
      */
     @Override
     @Transactional(readOnly = true)
@@ -140,8 +152,10 @@ public class BookingServiceImpl implements BookingService {
             case ALL -> bookingRepository.findAllByBookerIdOrderByStartDesc(bookerId);
             case CURRENT ->
                     bookingRepository.findAllCurrentByBookerIdAndStatus(bookerId, APPROVED, LocalDateTime.now());
-            case PAST -> bookingRepository.findAllByBookerIdAndStatusAndEndBeforeOrderByStartDesc(bookerId, APPROVED, LocalDateTime.now());
-            case FUTURE -> bookingRepository.findAllByBookerIdAndStatusAndStartAfterOrderByStartDesc(bookerId, APPROVED, LocalDateTime.now());
+            case PAST ->
+                    bookingRepository.findAllByBookerIdAndStatusAndEndBeforeOrderByStartDesc(bookerId, APPROVED, LocalDateTime.now());
+            case FUTURE ->
+                    bookingRepository.findAllByBookerIdAndStatusAndStartAfterOrderByStartDesc(bookerId, APPROVED, LocalDateTime.now());
             case WAITING, REJECTED -> bookingRepository
                     .findAllByBookerIdAndStatusOrderByStartDesc(bookerId, BookingStatus.valueOf(state.toString()));
         };
@@ -159,7 +173,7 @@ public class BookingServiceImpl implements BookingService {
      * @param state   the booking state to filter by
      * @return a list of booking response DTOs for the specified owner and state,
      * ordered by start date descending
-     * @throws EntityNotFoundException  if no user with the given ownerId exists
+     * @throws EntityNotFoundException if no user with the given ownerId exists
      */
     @Override
     @Transactional(readOnly = true)
