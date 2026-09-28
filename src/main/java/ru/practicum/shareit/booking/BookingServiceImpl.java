@@ -86,7 +86,7 @@ public class BookingServiceImpl implements BookingService {
         if (approved == null) {
             throw new IllegalArgumentException("Approved status is required");
         }
-        booking.setStatus(approved? APPROVED : BookingStatus.REJECTED);
+        booking.setStatus(approved ? APPROVED : BookingStatus.REJECTED);
         bookingRepository.save(booking);
 
         //  Сервис должен не только позволять бронировать вещь на определённые даты,
@@ -108,8 +108,8 @@ public class BookingServiceImpl implements BookingService {
      * @param bookingId ID of the booking to retrieve
      * @return the booking details as a {@link BookingResponseDto}
      * @throws IllegalArgumentException if {@code userId} or {@code bookingId} is {@code null}
-     * @throws EntityNotFoundException   if no booking exists with the given {@code bookingId}
-     * @throws AccessDeniedException     if the user is neither the booker nor the owner of the item
+     * @throws EntityNotFoundException  if no booking exists with the given {@code bookingId}
+     * @throws AccessDeniedException    if the user is neither the booker nor the owner of the item
      */
     @Override
     @Transactional(readOnly = true)
@@ -142,7 +142,7 @@ public class BookingServiceImpl implements BookingService {
      * @param state    the booking state used to filter the results
      * @return a list of {@link BookingResponseDto} objects matching the booker and state
      * @throws IllegalArgumentException if {@code bookerId} or {@code state} is {@code null}
-     * @throws EntityNotFoundException   if no user with the given {@code bookerId} exists
+     * @throws EntityNotFoundException  if no user with the given {@code bookerId} exists
      */
     @Override
     @Transactional(readOnly = true)
@@ -160,7 +160,8 @@ public class BookingServiceImpl implements BookingService {
 
         List<Booking> result = switch (state) {
             case ALL -> bookingRepository.findAllByBookerIdOrderByStartDesc(bookerId);
-            case CURRENT -> bookingRepository.findAllCurrentByBookerIdAndStatus(bookerId, APPROVED,LocalDateTime.now());
+            case CURRENT ->
+                    bookingRepository.findAllCurrentByBookerIdAndStatus(bookerId, APPROVED, LocalDateTime.now());
             case PAST -> bookingRepository.findAllPastByBookerIdAndStatus(bookerId, APPROVED, LocalDateTime.now());
             case FUTURE -> bookingRepository.findAllFutureByBookerIdAndStatus(bookerId, APPROVED, LocalDateTime.now());
             case WAITING, REJECTED -> bookingRepository
@@ -179,9 +180,9 @@ public class BookingServiceImpl implements BookingService {
      * @param ownerId the ID of the owner whose bookings are to be retrieved
      * @param state   the booking state to filter by
      * @return a list of booking response DTOs for the specified owner and state,
-     *         ordered by start date descending
+     * ordered by start date descending
      * @throws IllegalArgumentException if ownerId or state is null
-     * @throws EntityNotFoundException   if no user with the given ownerId exists
+     * @throws EntityNotFoundException  if no user with the given ownerId exists
      */
     @Override
     @Transactional(readOnly = true)
@@ -204,7 +205,7 @@ public class BookingServiceImpl implements BookingService {
 
         List<Booking> result = switch (state) {
             case ALL -> bookingRepository.findAllByOwnerIdOrderByStartDesc(ownerId);
-            case CURRENT -> bookingRepository.findAllCurrentByOwnerIdAndStatus(ownerId, APPROVED,LocalDateTime.now());
+            case CURRENT -> bookingRepository.findAllCurrentByOwnerIdAndStatus(ownerId, APPROVED, LocalDateTime.now());
             case PAST -> bookingRepository.findAllPastByOwnerIdAndStatus(ownerId, APPROVED, LocalDateTime.now());
             case FUTURE -> bookingRepository.findAllFutureByOwnerIdAndStatus(ownerId, APPROVED, LocalDateTime.now());
             case WAITING, REJECTED -> bookingRepository
