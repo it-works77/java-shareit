@@ -149,7 +149,7 @@ public class ItemServiceImpl implements ItemService {
          * окончания срока аренды.
          * */
         List<Booking> userItemBookings = bookingRepository
-                .findAllPastByBookerIdAndItemIdAnStatus(userId,
+                .findAllByBookerIdAndItemIdAndStatusAndEndBeforeOrderByEndDesc(userId,
                         itemId,
                         BookingStatus.APPROVED,
                         LocalDateTime.now());

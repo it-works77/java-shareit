@@ -365,7 +365,7 @@ class BookingServiceImplTest {
         Item item = createItem(2L, 3L, true);
         Booking booking = createBooking(10L, item, booker, BookingStatus.APPROVED);
         when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
-        when(bookingRepository.findAllPastByBookerIdAndStatus(
+        when(bookingRepository.findAllByBookerIdAndStatusAndEndBeforeOrderByStartDesc(
                 eq(bookerId), eq(BookingStatus.APPROVED), any(LocalDateTime.class)))
                 .thenReturn(List.of(booking));
 
@@ -373,7 +373,7 @@ class BookingServiceImplTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isNotNull();
-        verify(bookingRepository).findAllPastByBookerIdAndStatus(
+        verify(bookingRepository).findAllByBookerIdAndStatusAndEndBeforeOrderByStartDesc(
                 eq(bookerId), eq(BookingStatus.APPROVED), any(LocalDateTime.class));
     }
 
@@ -384,7 +384,7 @@ class BookingServiceImplTest {
         Item item = createItem(2L, 3L, true);
         Booking booking = createBooking(10L, item, booker, BookingStatus.APPROVED);
         when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
-        when(bookingRepository.findAllFutureByBookerIdAndStatus(
+        when(bookingRepository.findAllByBookerIdAndStatusAndStartAfterOrderByStartDesc(
                 eq(bookerId), eq(BookingStatus.APPROVED), any(LocalDateTime.class)))
                 .thenReturn(List.of(booking));
 
@@ -392,7 +392,7 @@ class BookingServiceImplTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isNotNull();
-        verify(bookingRepository).findAllFutureByBookerIdAndStatus(
+        verify(bookingRepository).findAllByBookerIdAndStatusAndStartAfterOrderByStartDesc(
                 eq(bookerId), eq(BookingStatus.APPROVED), any(LocalDateTime.class));
     }
 
