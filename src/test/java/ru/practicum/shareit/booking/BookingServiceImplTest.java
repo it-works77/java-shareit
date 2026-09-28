@@ -49,17 +49,6 @@ class BookingServiceImplTest {
     // ---------- create ----------
 
     @Test
-    void create_whenBookerIdIsNull_shouldThrowIllegalArgumentException() {
-        BookingCreateRequestDto dto = createBookingRequest(null, 1L);
-
-        assertThatThrownBy(() -> bookingService.create(dto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Booker ID is required");
-
-        verifyNoInteractions(userRepository, itemRepository, bookingRepository);
-    }
-
-    @Test
     void create_whenUserNotFound_shouldThrowEntityNotFoundException() {
         Long bookerId = 99L;
         BookingCreateRequestDto dto = createBookingRequest(bookerId, 1L);
@@ -131,15 +120,6 @@ class BookingServiceImplTest {
     // ---------- updateApprovement ----------
 
     @Test
-    void updateApprovement_whenOwnerIdIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.updateApprovement(null, 1L, true))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Booker ID is required");
-
-        verifyNoInteractions(bookingRepository, itemRepository);
-    }
-
-    @Test
     void updateApprovement_whenBookingNotFound_shouldThrowEntityNotFoundException() {
         Long ownerId = 1L;
         Long bookingId = 99L;
@@ -180,7 +160,7 @@ class BookingServiceImplTest {
 
         assertThatThrownBy(() -> bookingService.updateApprovement(ownerId, bookingId, true))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Бронирование уже подтверждено");
+                .hasMessage("Бронирование недоступно для подтверждения");
 
         verify(bookingRepository, never()).save(any());
         verifyNoInteractions(itemRepository);
@@ -197,7 +177,7 @@ class BookingServiceImplTest {
 
         assertThatThrownBy(() -> bookingService.updateApprovement(ownerId, bookingId, true))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Бронирование уже отклонено");
+                .hasMessage("Бронирование недоступно для подтверждения");
 
         verify(bookingRepository, never()).save(any());
         verifyNoInteractions(itemRepository);
@@ -214,7 +194,7 @@ class BookingServiceImplTest {
 
         assertThatThrownBy(() -> bookingService.updateApprovement(ownerId, bookingId, true))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Бронирование уже отменено");
+                .hasMessage("Бронирование недоступно для подтверждения");
 
         verify(bookingRepository, never()).save(any());
         verifyNoInteractions(itemRepository);
@@ -276,24 +256,6 @@ class BookingServiceImplTest {
     // ---------- getByUserIdAndBookingId ----------
 
     @Test
-    void getByUserIdAndBookingId_whenUserIdIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.getByUserIdAndBookingId(null, 1L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("User ID is required");
-
-        verifyNoInteractions(bookingRepository);
-    }
-
-    @Test
-    void getByUserIdAndBookingId_whenBookingIdIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.getByUserIdAndBookingId(1L, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Booking ID is required");
-
-        verifyNoInteractions(bookingRepository);
-    }
-
-    @Test
     void getByUserIdAndBookingId_whenBookingNotFound_shouldThrowEntityNotFoundException() {
         Long userId = 1L;
         Long bookingId = 99L;
@@ -347,24 +309,6 @@ class BookingServiceImplTest {
     }
 
     // ---------- getAllByBookerIdAndState ----------
-
-    @Test
-    void getAllByBookerIdAndState_whenBookerIdIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.getAllByBookerIdAndState(null, BookingRequestState.ALL))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Booker ID is required");
-
-        verifyNoInteractions(userRepository, bookingRepository);
-    }
-
-    @Test
-    void getAllByBookerIdAndState_whenStateIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.getAllByBookerIdAndState(1L, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Booking state is required");
-
-        verifyNoInteractions(userRepository, bookingRepository);
-    }
 
     @Test
     void getAllByBookerIdAndState_whenUserNotFound_shouldThrowEntityNotFoundException() {
@@ -487,24 +431,6 @@ class BookingServiceImplTest {
     }
 
     // ---------- getAllByOwnerIdAndState ----------
-
-    @Test
-    void getAllByOwnerIdAndState_whenOwnerIdIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.getAllByOwnerIdAndState(null, BookingRequestState.ALL))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Owner ID is required");
-
-        verifyNoInteractions(userRepository, itemRepository, bookingRepository);
-    }
-
-    @Test
-    void getAllByOwnerIdAndState_whenStateIsNull_shouldThrowIllegalArgumentException() {
-        assertThatThrownBy(() -> bookingService.getAllByOwnerIdAndState(1L, null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Booking state is required");
-
-        verifyNoInteractions(userRepository, itemRepository, bookingRepository);
-    }
 
     @Test
     void getAllByOwnerIdAndState_whenUserNotFound_shouldThrowEntityNotFoundException() {

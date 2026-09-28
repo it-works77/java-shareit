@@ -49,10 +49,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemResponseDto updateById(Long userId, Long itemId, ItemUpdateRequestDto itemUpdateRequestDto) {
-        if (userId == null || itemId == null) {
-            throw new IllegalArgumentException("Аргументы должны быть заданы: userId=%s, itemId=%s"
-                    .formatted(userId, itemId));
-        }
 
         Item existingItem = itemRepository.findById(itemId).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
@@ -80,6 +76,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemGetByIdResponseDto get(Long id) {
         log.info("Get item. ItemId={}", id);
         Item item = itemRepository.findById(id).orElseThrow(
@@ -92,6 +89,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ItemGetAllResponseDto> getAllByUserId(Long ownerId) {
         log.info("Get user items. UserId={}", ownerId);
         List<Item> userItems = itemRepository.getAllByOwnerId(ownerId);
@@ -113,6 +111,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ItemResponseDto> search(String text) {
         if (text.isBlank()) return List.of();
 

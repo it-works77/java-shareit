@@ -39,10 +39,6 @@ public class UserServiceImpl implements UserService {
     public UserResponseDto updateById(Long userId, UserUpdateRequestDto userUpdateRequestDto) {
         log.info("Update user: userDto={}", userUpdateRequestDto);
 
-        if (userId == null) {
-            throw new IllegalArgumentException("userId должен быть задан");
-        }
-
         User existingUser = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Пользователь не найден по id=%s".formatted(userId)));
 
@@ -63,6 +59,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponseDto get(Long id) {
         log.info("Get user: userId={}", id);
         User user = userRepository.findById(id).orElseThrow(
@@ -71,6 +68,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDto> getAll() {
         log.info("Get all users");
         List<User> users = userRepository.findAll();

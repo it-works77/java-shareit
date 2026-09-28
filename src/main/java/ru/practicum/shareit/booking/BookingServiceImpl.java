@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import static ru.practicum.shareit.booking.enums.BookingStatus.APPROVED;
+import static ru.practicum.shareit.booking.enums.BookingStatus.*;
 
 @Slf4j
 @Service
@@ -37,9 +37,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDto create(BookingCreateRequestDto bookingCreateRequestDto) {
         log.info("Creating booking: {}", bookingCreateRequestDto);
-        if (bookingCreateRequestDto.getBookerId() == null) {
-            throw new IllegalArgumentException("Booker ID is required");
-        }
 
         User user = userRepository.findById(bookingCreateRequestDto.getBookerId())
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь-арендатор bookerId=" +
@@ -65,10 +62,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDto updateApprovement(Long ownerId, Long bookingId, Boolean approved) {
         log.info("Updating booking: bookingId={}, approved={}", bookingId, approved);
-        if (ownerId == null) {
-            throw new IllegalArgumentException("Booker ID is required");
-        }
-
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Бронирование bookingId=" + bookingId + " не найдено"));
@@ -77,16 +70,15 @@ public class BookingServiceImpl implements BookingService {
         if (!Objects.equals(booking.getItem().getOwnerId(), ownerId)) {
             throw new AccessDeniedException("Пользователь ownerId=" + ownerId + " не является владельцем вещи");
         }
-        switch (booking.getStatus()) {
-            case APPROVED -> throw new IllegalStateException("Бронирование уже подтверждено");
-            case REJECTED -> throw new IllegalStateException("Бронирование уже отклонено");
-            case CANCELED -> throw new IllegalStateException("Бронирование уже отменено");
+
+        if (booking.getStatus() != WAITING) {
+            throw new IllegalStateException("Бронирование недоступно для подтверждения");
         }
 
         if (approved == null) {
             throw new IllegalArgumentException("Approved status is required");
         }
-        booking.setStatus(approved ? APPROVED : BookingStatus.REJECTED);
+        booking.setStatus(approved ? APPROVED : REJECTED);
         bookingRepository.save(booking);
 
         //  Сервис должен не только позволять бронировать вещь на определённые даты,
@@ -107,7 +99,6 @@ public class BookingServiceImpl implements BookingService {
      * @param userId    ID of the user requesting the booking
      * @param bookingId ID of the booking to retrieve
      * @return the booking details as a {@link BookingResponseDto}
-     * @throws IllegalArgumentException if {@code userId} or {@code bookingId} is {@code null}
      * @throws EntityNotFoundException  if no booking exists with the given {@code bookingId}
      * @throws AccessDeniedException    if the user is neither the booker nor the owner of the item
      */
@@ -115,12 +106,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public BookingResponseDto getByUserIdAndBookingId(Long userId, Long bookingId) {
         log.info("Getting booking: userId={}, bookingId={}", userId, bookingId);
-        if (userId == null) {
-            throw new IllegalArgumentException("User ID is required");
-        }
-        if (bookingId == null) {
-            throw new IllegalArgumentException("Booking ID is required");
-        }
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Бронирование bookingId=" + bookingId + " не найдено"));
@@ -141,19 +126,12 @@ public class BookingServiceImpl implements BookingService {
      * @param bookerId the ID of the booker whose bookings are to be retrieved
      * @param state    the booking state used to filter the results
      * @return a list of {@link BookingResponseDto} objects matching the booker and state
-     * @throws IllegalArgumentException if {@code bookerId} or {@code state} is {@code null}
      * @throws EntityNotFoundException  if no user with the given {@code bookerId} exists
      */
     @Override
     @Transactional(readOnly = true)
     public List<BookingResponseDto> getAllByBookerIdAndState(Long bookerId, BookingRequestState state) {
         log.info("Getting all bookings for booker: bookerId={}, state={}", bookerId, state);
-        if (bookerId == null) {
-            throw new IllegalArgumentException("Booker ID is required");
-        }
-        if (state == null) {
-            throw new IllegalArgumentException("Booking state is required");
-        }
 
         userRepository.findById(bookerId)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь bookerId=" + bookerId + " не найден"));
@@ -181,19 +159,12 @@ public class BookingServiceImpl implements BookingService {
      * @param state   the booking state to filter by
      * @return a list of booking response DTOs for the specified owner and state,
      * ordered by start date descending
-     * @throws IllegalArgumentException if ownerId or state is null
      * @throws EntityNotFoundException  if no user with the given ownerId exists
      */
     @Override
     @Transactional(readOnly = true)
     public List<BookingResponseDto> getAllByOwnerIdAndState(Long ownerId, BookingRequestState state) {
         log.info("Getting all bookings for owner: ownerId={}, state={}", ownerId, state);
-        if (ownerId == null) {
-            throw new IllegalArgumentException("Owner ID is required");
-        }
-        if (state == null) {
-            throw new IllegalArgumentException("Booking state is required");
-        }
 
         userRepository.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь ownerId=" + ownerId + " не найден"));

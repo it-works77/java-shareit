@@ -140,19 +140,6 @@ class UserServiceImplTest {
     }
 
     @Test
-    void updateById_whenUserIdIsNull_shouldThrowIllegalArgumentException() {
-        UserUpdateRequestDto updateDto = new UserUpdateRequestDto();
-        updateDto.setName("New");
-
-        assertThatThrownBy(() -> userService.updateById(null, updateDto))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("userId");
-
-        verify(userRepository, never()).findById(any());
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
     void updateById_whenUserNotFound_shouldThrowEntityNotFoundException() {
         UserUpdateRequestDto updateDto = new UserUpdateRequestDto();
         updateDto.setName("New");

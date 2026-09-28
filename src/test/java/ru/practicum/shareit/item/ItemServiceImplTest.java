@@ -96,26 +96,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    @DisplayName("updateById: should throw when userId is null")
-    void updateById_nullUserId_shouldThrow() {
-        ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> itemService.updateById(null, 1L, request));
-
-        verify(itemRepository, never()).findById(any());
-    }
-
-    @Test
-    @DisplayName("updateById: should throw when itemId is null")
-    void updateById_nullItemId_shouldThrow() {
-        ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
-
-        assertThrows(IllegalArgumentException.class,
-                () -> itemService.updateById(1L, null, request));
-    }
-
-    @Test
     @DisplayName("updateById: should throw when item does not exist")
     void updateById_itemNotFound_shouldThrow() {
         Long userId = 1L;
