@@ -9,9 +9,6 @@ import ru.practicum.shareit.user.dto.UserCreateRequestDto;
 import ru.practicum.shareit.user.dto.UserResponseDto;
 import ru.practicum.shareit.user.dto.UserUpdateRequestDto;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping(path = "/users")
 @Validated
@@ -25,7 +22,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public  UserResponseDto get(@PathVariable @Positive Long userId) {
+    public UserResponseDto get(@PathVariable @Positive Long userId) {
         return userService.get(userId);
     }
 

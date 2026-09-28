@@ -4,16 +4,19 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.enums.BookingStatus;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
-import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
-import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
-import ru.practicum.shareit.item.dto.ItemResponseDto;
-import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,15 +27,16 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public ItemResponseDto addByUserId(Long userId, ItemCreateRequestDto itemCreateRequestDto) {
         log.info("Add item: itemDto: {}", itemCreateRequestDto);
-        // If user doesn't exist then throws EntityNotFoundException as required
-        userService.get(userId);
+        userRepository.findById(userId).
+                orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s".formatted(userId)));
 
         Item item = ItemMapper.mapItemCreateRequestDtoToItem(itemCreateRequestDto);
         item.setOwnerId(userId);
@@ -75,19 +79,23 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemResponseDto get(Long id) {
+    public ItemGetByIdResponseDto get(Long id) {
         log.info("Get item. ItemId={}", id);
         Item item = itemRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
-        return ItemMapper.mapItemToItemResponseDto(item);
+
+        List<Comment> comments = commentRepository.findAllByItemId(id);
+
+        return ItemMapper.mapItemToItemGetByIdResponseDto(item,
+                comments.stream().map(CommentMapper::mapCommentToCommentResponseDto).toList());
     }
 
     @Override
-    public List<ItemWithBookingDatesResponseDto> getAllByUserId(Long ownerId) {
+    public List<ItemGetAllResponseDto> getAllByUserId(Long ownerId) {
         log.info("Get user items. UserId={}", ownerId);
         List<Item> userItems = itemRepository.getAllByOwnerId(ownerId);
 
-        List<ItemWithBookingDatesResponseDto> result = userItems.stream()
+        List<ItemGetAllResponseDto> result = userItems.stream()
                 .map(ItemMapper::mapItemToItemWithBookingDatesResponseDto)
                 .toList();
 
@@ -121,5 +129,36 @@ public class ItemServiceImpl implements ItemService {
 
         itemRepository.deleteById(id);
         log.info("Item deleted. ItemId={}", id);
+    }
+
+    @Override
+    @Transactional
+    public CommentResponseDto addComment(Long userId, Long itemId, CommentCreateRequestDto commentCreateRequestDto) {
+        log.info("Add comment: commentDto: {}", commentCreateRequestDto);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s".formatted(userId)));
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
+
+        /* Проверка, что пользователь, который пишет комментарий, действительно брал вещь в аренду.
+        * Отзыв может оставить только тот пользователь, который брал эту вещь в аренду, и только после
+        * окончания срока аренды.
+        * */
+        List<Booking> userItemBookings = bookingRepository
+                .findAllPastByBookerIdAndItemIdAnStatus(userId,
+                        itemId,
+                        BookingStatus.APPROVED,
+                        LocalDateTime.now());
+
+        if(userItemBookings.isEmpty()) {
+            throw new IllegalStateException("Невозможно создать комментарий: пользователь не брал вещь в аренду");
+        }
+
+        Comment comment = commentRepository.save(CommentMapper
+                .mapCommentCreateRequestDtoToComment(commentCreateRequestDto, user, item));
+        log.info("Comment added: {}", comment);
+        return CommentMapper.mapCommentToCommentResponseDto(comment);
     }
 }

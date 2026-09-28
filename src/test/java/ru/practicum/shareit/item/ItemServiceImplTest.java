@@ -9,13 +9,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
-import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
-import ru.practicum.shareit.item.dto.ItemResponseDto;
-import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
-import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +37,10 @@ class ItemServiceImplTest {
     private BookingRepository bookingRepository;
 
     @Mock
-    private UserService userService;
+    private UserRepository userRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @InjectMocks
     private ItemServiceImpl itemService;
@@ -48,6 +50,8 @@ class ItemServiceImplTest {
     void addByUserId_shouldSaveItemAndReturnDto() {
         Long userId = 1L;
         ItemCreateRequestDto request = buildCreateRequest("Дрель", "Ударная дрель", true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
 
         when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> {
             Item item = invocation.getArgument(0);
@@ -63,7 +67,7 @@ class ItemServiceImplTest {
         assertEquals("Ударная дрель", response.getDescription());
         assertEquals(Boolean.TRUE, response.getAvailable());
 
-        verify(userService).get(userId);
+        verify(userRepository).findById(userId);
 
         ArgumentCaptor<Item> itemCaptor = ArgumentCaptor.forClass(Item.class);
         verify(itemRepository).save(itemCaptor.capture());
@@ -75,6 +79,7 @@ class ItemServiceImplTest {
         assertEquals(Boolean.TRUE, savedItem.getAvailable());
     }
 
+
     @Test
     @DisplayName("addByUserId: should throw when user is not found")
     void addByUserId_whenUserNotFound_shouldThrow() {
@@ -82,7 +87,7 @@ class ItemServiceImplTest {
         ItemCreateRequestDto request = buildCreateRequest("Дрель", "Описание", true);
 
         doThrow(new EntityNotFoundException("Пользователь не найден"))
-                .when(userService).get(userId);
+                .when(userRepository).findById(userId);
 
         assertThrows(EntityNotFoundException.class,
                 () -> itemService.addByUserId(userId, request));
@@ -192,8 +197,9 @@ class ItemServiceImplTest {
         Item item = buildItem(itemId, 1L, "Дрель", "Ударная дрель", true);
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
 
-        ItemResponseDto response = itemService.get(itemId);
+        ItemGetByIdResponseDto response = itemService.get(itemId);
 
         assertNotNull(response);
         assertEquals(itemId, response.getId());
@@ -238,18 +244,18 @@ class ItemServiceImplTest {
         when(bookingRepository.getNextBookingStartDateByItemId(eq(2L), any(LocalDateTime.class)))
                 .thenReturn(null);
 
-        List<ItemWithBookingDatesResponseDto> response = itemService.getAllByUserId(ownerId);
+        List<ItemGetAllResponseDto> response = itemService.getAllByUserId(ownerId);
 
         assertNotNull(response);
         assertEquals(2, response.size());
 
-        ItemWithBookingDatesResponseDto first = response.get(0);
+        ItemGetAllResponseDto first = response.get(0);
         assertEquals("Дрель", first.getName());
         assertEquals(Boolean.TRUE, first.getAvailable());
         assertEquals(lastBookingFirst, first.getLastBooking());
         assertEquals(nextBookingFirst, first.getNextBooking());
 
-        ItemWithBookingDatesResponseDto second = response.get(1);
+        ItemGetAllResponseDto second = response.get(1);
         assertEquals("Отвертка", second.getName());
         assertEquals(Boolean.FALSE, second.getAvailable());
         assertEquals(lastBookingSecond, second.getLastBooking());

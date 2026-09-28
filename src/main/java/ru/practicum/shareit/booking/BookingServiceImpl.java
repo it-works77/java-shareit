@@ -49,7 +49,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new EntityNotFoundException("Вещь itemId=" +
                         bookingCreateRequestDto.getItemId() + " не найдена"));
 
-        // TODO Проверка, что вещь доступна для аренды
+        // Проверка, что вещь доступна для аренды
         if (!item.getAvailable()) {
             throw new ItemIsNotAvailableException("Вещь itemId=" + item.getId() + " недоступна для аренды");
         }
@@ -69,11 +69,11 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Booker ID is required");
         }
 
-        // TODO Может быть выполнено только владельцем вещи
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Бронирование bookingId=" + bookingId + " не найдено"));
 
+        // Может быть выполнено только владельцем вещи
         if (!Objects.equals(booking.getItem().getOwnerId(), ownerId)) {
             throw new AccessDeniedException("Пользователь ownerId=" + ownerId + " не является владельцем вещи");
         }
@@ -89,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(approved? APPROVED : BookingStatus.REJECTED);
         bookingRepository.save(booking);
 
-        // TODO Сервис должен не только позволять бронировать вещь на определённые даты,
+        //  Сервис должен не только позволять бронировать вещь на определённые даты,
         //  но и закрывать к ней доступ на время бронирования от других желающих.
         Item item = booking.getItem();
         item.setAvailable(false);

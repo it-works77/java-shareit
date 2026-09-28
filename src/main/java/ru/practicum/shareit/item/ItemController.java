@@ -5,16 +5,9 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
-import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
-import ru.practicum.shareit.item.dto.ItemResponseDto;
-import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
+import ru.practicum.shareit.item.dto.*;
 
 import java.util.List;
-
-/**
- * TODO Sprint add-controllers.
- */
 
 @RestController
 @Validated
@@ -31,7 +24,7 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemResponseDto get(@PathVariable @Positive Long itemId) {
+    public ItemGetByIdResponseDto get(@PathVariable @Positive Long itemId) {
         return itemService.get(itemId);
     }
 
@@ -42,7 +35,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemWithBookingDatesResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
+    public List<ItemGetAllResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
         return itemService.getAllByUserId(userId);
     }
 
@@ -56,5 +49,12 @@ public class ItemController {
     @DeleteMapping("/{itemId}")
     public void delete(@PathVariable @Positive Long itemId) {
         itemService.remove(itemId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentResponseDto addComment(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
+                                         @PathVariable @Positive Long itemId,
+                                         @Valid @RequestBody CommentCreateRequestDto commentCreateRequestDto) {
+        return itemService.addComment(userId, itemId, commentCreateRequestDto);
     }
 }

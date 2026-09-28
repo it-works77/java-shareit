@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.ItemCreateRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
-import ru.practicum.shareit.item.dto.ItemWithBookingDatesResponseDto;
+import ru.practicum.shareit.item.dto.ItemGetAllResponseDto;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ class ItemControllerTest {
     private ItemCreateRequestDto validCreateDto;
     private ItemUpdateRequestDto validUpdateDto;
     private ItemResponseDto responseDto;
-    private ItemWithBookingDatesResponseDto responseDtoWithBookingDates;
+    private ItemGetAllResponseDto responseDtoWithBookingDates;
 
     @BeforeEach
     void setUp() {
@@ -56,7 +56,7 @@ class ItemControllerTest {
                 .available(true)
                 .build();
 
-        responseDtoWithBookingDates = ItemWithBookingDatesResponseDto.builder()
+        responseDtoWithBookingDates = ItemGetAllResponseDto.builder()
                 .id(1L)
                 .name("Drill")
                 .description("Power drill")

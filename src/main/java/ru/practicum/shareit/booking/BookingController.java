@@ -11,9 +11,6 @@ import ru.practicum.shareit.booking.enums.BookingRequestState;
 
 import java.util.List;
 
-/**
- * TODO Sprint add-bookings.
- */
 @RestController
 @Validated
 @RequestMapping(path = "/bookings")
