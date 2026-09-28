@@ -53,12 +53,12 @@ public class BookingServiceImpl implements BookingService {
         if (!item.getAvailable()) {
             throw new ItemIsNotAvailableException("Вещь itemId=" + item.getId() + " недоступна для аренды");
         }
-        Booking booking = BookingMapper.MapBookingRequestDtotoBooking(bookingCreateRequestDto, item, user);
+        Booking booking = BookingMapper.mapBookingRequestDtoToBooking(bookingCreateRequestDto, item, user);
 
         bookingRepository.save(booking);
         log.info("Booking created: {}", booking);
 
-        return BookingMapper.MapBookingToBookingResponseDto(booking);
+        return BookingMapper.mapBookingToBookingResponseDto(booking);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class BookingServiceImpl implements BookingService {
 
         log.info("Booking updated: {}", booking);
         log.info("Item updated: {}", item);
-        return BookingMapper.MapBookingToBookingResponseDto(booking);
+        return BookingMapper.mapBookingToBookingResponseDto(booking);
     }
 
     /**
@@ -131,7 +131,7 @@ public class BookingServiceImpl implements BookingService {
                     " не является создателем бронирования или владельцем вещи");
         }
         log.info("Booking retrieved: {}", booking);
-        return BookingMapper.MapBookingToBookingResponseDto(booking);
+        return BookingMapper.mapBookingToBookingResponseDto(booking);
     }
 
     /**
@@ -169,7 +169,7 @@ public class BookingServiceImpl implements BookingService {
 
         return result
                 .stream()
-                .map(BookingMapper::MapBookingToBookingResponseDto)
+                .map(BookingMapper::mapBookingToBookingResponseDto)
                 .toList();
     }
 
@@ -213,7 +213,7 @@ public class BookingServiceImpl implements BookingService {
 
         return result
                 .stream()
-                .map(BookingMapper::MapBookingToBookingResponseDto)
+                .map(BookingMapper::mapBookingToBookingResponseDto)
                 .toList();
     }
 }

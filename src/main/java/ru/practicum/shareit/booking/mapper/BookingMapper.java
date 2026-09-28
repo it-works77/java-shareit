@@ -12,7 +12,7 @@ import ru.practicum.shareit.user.model.User;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BookingMapper {
-    public static Booking MapBookingRequestDtotoBooking(BookingCreateRequestDto bookingCreateRequestDto, Item item, User user) {
+    public static Booking mapBookingRequestDtoToBooking(BookingCreateRequestDto bookingCreateRequestDto, Item item, User user) {
         return Booking.builder()
                 .start(bookingCreateRequestDto.getStart())
                 .end(bookingCreateRequestDto.getEnd())
@@ -22,7 +22,7 @@ public class BookingMapper {
                 .build();
     }
 
-    public static BookingResponseDto MapBookingToBookingResponseDto(Booking booking) {
+    public static BookingResponseDto mapBookingToBookingResponseDto(Booking booking) {
         return BookingResponseDto.builder()
                 .id(booking.getId())
                 .start(booking.getStart())

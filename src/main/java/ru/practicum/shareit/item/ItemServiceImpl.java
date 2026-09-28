@@ -35,8 +35,9 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemResponseDto addByUserId(Long userId, ItemCreateRequestDto itemCreateRequestDto) {
         log.info("Add item: itemDto: {}", itemCreateRequestDto);
-        userRepository.findById(userId).
-                orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s".formatted(userId)));
+        userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s"
+                        .formatted(userId)));
 
         Item item = ItemMapper.mapItemCreateRequestDtoToItem(itemCreateRequestDto);
         item.setOwnerId(userId);
@@ -104,6 +105,8 @@ public class ItemServiceImpl implements ItemService {
                 .map(item -> {
                     item.setLastBooking(bookingRepository.getLastBookingEndDateByItemId(item.getId(), now));
                     item.setNextBooking(bookingRepository.getNextBookingStartDateByItemId(item.getId(), now));
+                    List<Comment> comments = commentRepository.findAllByItemId(item.getId());
+                    item.setComments(comments.stream().map(CommentMapper::mapCommentToCommentResponseDto).toList());
                     return item;
                 })
                 .toList();
@@ -143,16 +146,16 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
 
         /* Проверка, что пользователь, который пишет комментарий, действительно брал вещь в аренду.
-        * Отзыв может оставить только тот пользователь, который брал эту вещь в аренду, и только после
-        * окончания срока аренды.
-        * */
+         * Отзыв может оставить только тот пользователь, который брал эту вещь в аренду, и только после
+         * окончания срока аренды.
+         * */
         List<Booking> userItemBookings = bookingRepository
                 .findAllPastByBookerIdAndItemIdAnStatus(userId,
                         itemId,
                         BookingStatus.APPROVED,
                         LocalDateTime.now());
 
-        if(userItemBookings.isEmpty()) {
+        if (userItemBookings.isEmpty()) {
             throw new IllegalStateException("Невозможно создать комментарий: пользователь не брал вещь в аренду");
         }
 
