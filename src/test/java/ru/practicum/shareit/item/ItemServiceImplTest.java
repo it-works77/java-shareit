@@ -173,30 +173,58 @@ class ItemServiceImplTest {
     @Test
     @DisplayName("get: should return item by id")
     void get_shouldReturnItem() {
+        Long userId = 2L; // не владелец
         Long itemId = 1L;
         Item item = buildItem(itemId, 1L, "Дрель", "Ударная дрель", true);
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
         when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
 
-        ItemGetByIdResponseDto response = itemService.get(itemId);
+        ItemGetByIdResponseDto response = itemService.get(userId, itemId);
 
         assertNotNull(response);
         assertEquals(itemId, response.getId());
         assertEquals("Дрель", response.getName());
         assertEquals("Ударная дрель", response.getDescription());
         assertEquals(Boolean.TRUE, response.getAvailable());
+        // не владелец не должен видеть даты бронирований
+        assertNull(response.getLastBooking());
+        assertNull(response.getNextBooking());
+    }
+
+    @Test
+    @DisplayName("get: should return booking dates only for owner")
+    void get_whenOwner_shouldReturnBookingDates() {
+        Long ownerId = 1L;
+        Long itemId = 1L;
+        Item item = buildItem(itemId, ownerId, "Дрель", "Ударная дрель", true);
+        LocalDateTime last = LocalDateTime.of(2025, 1, 1, 12, 0);
+        LocalDateTime next = LocalDateTime.of(2025, 2, 1, 12, 0);
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
+        when(bookingRepository.getLastBookingEndDateByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(last);
+        when(bookingRepository.getNextBookingStartDateByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(next);
+
+        ItemGetByIdResponseDto response = itemService.get(ownerId, itemId);
+
+        assertNotNull(response);
+        assertEquals(last, response.getLastBooking());
+        assertEquals(next, response.getNextBooking());
     }
 
     @Test
     @DisplayName("get: should throw when item does not exist")
     void get_whenItemNotFound_shouldThrow() {
+        Long userId = 1L;
         Long itemId = 1L;
 
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-                () -> itemService.get(itemId));
+                () -> itemService.get(userId, itemId));
 
         assertEquals("Вещь не найдена по id=1", exception.getMessage());
     }

@@ -24,8 +24,9 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemGetByIdResponseDto get(@PathVariable @Positive Long itemId) {
-        return itemService.get(itemId);
+    public ItemGetByIdResponseDto get(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
+                                      @PathVariable @Positive Long itemId) {
+        return itemService.get(userId, itemId);
     }
 
     @GetMapping

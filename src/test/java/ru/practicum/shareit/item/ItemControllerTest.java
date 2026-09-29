@@ -226,14 +226,14 @@ class ItemControllerTest {
 
     @Test
     void get_invalidItemIdNotLong_returns400() throws Exception {
-        mockMvc.perform(get("/items/abc"))
+        mockMvc.perform(get("/items/abc").header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
     }
 
     @Test
     void get_invalidItemIdZero_returns400() throws Exception {
-        mockMvc.perform(get("/items/0"))
+        mockMvc.perform(get("/items/0").header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());
@@ -241,7 +241,7 @@ class ItemControllerTest {
 
     @Test
     void get_invalidItemIdNegative_returns400() throws Exception {
-        mockMvc.perform(get("/items/-1"))
+        mockMvc.perform(get("/items/-1").header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());

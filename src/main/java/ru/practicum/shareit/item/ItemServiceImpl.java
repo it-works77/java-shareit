@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public ItemGetByIdResponseDto get(Long id) {
+    public ItemGetByIdResponseDto get(Long userId, Long id) {
         log.info("Get item. ItemId={}", id);
         Item item = itemRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
@@ -90,8 +90,11 @@ public class ItemServiceImpl implements ItemService {
         ItemGetByIdResponseDto result = ItemMapper.mapItemToItemGetByIdResponseDto(item,
                 comments.stream().map(CommentMapper::mapCommentToCommentResponseDto).toList());
 
-        result.setLastBooking(bookingRepository.getLastBookingEndDateByItemId(item.getId(), now));
-        result.setNextBooking(bookingRepository.getNextBookingStartDateByItemId(item.getId(), now));
+        // даты должен видеть только владелец вещи
+        if (Objects.equals(item.getOwnerId(), userId)) {
+            result.setLastBooking(bookingRepository.getLastBookingEndDateByItemId(item.getId(), now));
+            result.setNextBooking(bookingRepository.getNextBookingStartDateByItemId(item.getId(), now));
+        }
         return result;
 
     }
