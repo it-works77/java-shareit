@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.item.dto.ItemLastBookingProjection;
+import ru.practicum.shareit.item.dto.ItemNextBookingProjection;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -80,6 +82,27 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     LocalDateTime getNextBookingStartDateByItemId(@Param("itemId") Long itemId,
                                                   @Param("now") LocalDateTime now);
 
+    @Query(value = "select i.id as itemId, max(b.end_date) as last_booking " +
+            "from items i " +
+            "join bookings b on i.id = b.item_id " +
+            "    and b.end_date < :now " +
+            "    and b.status = :status " +
+            "where i.owner_id = :ownerId " +
+            "group by i.id", nativeQuery = true)
+    List<ItemLastBookingProjection> findAllLastBookingByStatus(@Param("ownerId") Long ownerId,
+                                                               @Param("status") String bookingStatus,
+                                                               @Param("now") LocalDateTime now);
+
+    @Query(value = "select i.id as itemId, min(b.start_date) as next_booking " +
+            "from items i " +
+            "join bookings b on i.id = b.item_id " +
+            "    and b.start_date > :now " +
+            "    and b.status = :status " +
+            "where i.owner_id = :ownerId " +
+            "group by i.id", nativeQuery = true)
+    List<ItemNextBookingProjection> findAllNextBookingByStatus(@Param("ownerId") Long ownerId,
+                                                               @Param("status") String bookingStatus,
+                                                               @Param("now") LocalDateTime now);
 
     List<Booking> findAllByBookerIdAndItemIdAndStatusAndEndBeforeOrderByEndDesc(Long bookerId,
                                                                                 Long itemId,

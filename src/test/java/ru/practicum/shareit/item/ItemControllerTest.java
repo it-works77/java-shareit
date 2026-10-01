@@ -310,7 +310,7 @@ class ItemControllerTest {
 
     @Test
     void getAllByUserId_validRequest_returns200() throws Exception {
-        when(itemService.getAllByUserId(anyLong()))
+        when(itemService.getAllByOwnerId(anyLong()))
                 .thenReturn(List.of(responseDtoWithBookingDates));
 
         mockMvc.perform(get("/items")
