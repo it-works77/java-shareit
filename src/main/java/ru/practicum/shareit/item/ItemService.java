@@ -11,7 +11,7 @@ public interface ItemService {
 
     ItemGetByIdResponseDto get(Long userId, Long id);
 
-    List<ItemGetAllResponseDto> getAllByUserId(Long userId);
+    List<ItemGetAllResponseDto> getAllByOwnerId(Long userId);
 
     List<ItemResponseDto> search(String text);
 

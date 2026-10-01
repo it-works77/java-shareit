@@ -31,7 +31,7 @@ public class ItemController {
 
     @GetMapping
     public List<ItemGetAllResponseDto> getAllByUserId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
-        return itemService.getAllByUserId(userId);
+        return itemService.getAllByOwnerId(userId);
     }
 
     @GetMapping("/search")

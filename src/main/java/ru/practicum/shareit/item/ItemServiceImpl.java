@@ -20,7 +20,9 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -49,6 +51,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemResponseDto updateById(Long userId, Long itemId, ItemUpdateRequestDto itemUpdateRequestDto) {
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s"
+                        .formatted(userId)));
 
         Item existingItem = itemRepository.findById(itemId).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(itemId)));
@@ -79,9 +85,13 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public ItemGetByIdResponseDto get(Long userId, Long id) {
         log.info("Get item. ItemId={}", id);
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s"
+                        .formatted(userId)));
+
         Item item = itemRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Вещь не найдена по id=%s".formatted(id)));
-
 
         List<Comment> comments = commentRepository.findAllByItemId(id);
 
@@ -101,22 +111,55 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemGetAllResponseDto> getAllByUserId(Long ownerId) {
+    public List<ItemGetAllResponseDto> getAllByOwnerId(Long ownerId) {
         log.info("Get owner's items. UserId={}", ownerId);
+
+        userRepository.findById(ownerId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s"
+                        .formatted(ownerId)));
+
         List<Item> ownerItems = itemRepository.getAllByOwnerId(ownerId);
 
-        List<ItemGetAllResponseDto> result = ownerItems.stream()
-                .map(ItemMapper::mapItemToItemWithBookingDatesResponseDto)
-                .toList();
+        if (ownerItems.isEmpty()) {
+            return List.of();
+        }
 
-        var now = LocalDateTime.now();
-        return result.stream()
+        // Получаем даты предыдущего и следующего бронирований, все комментарии к вещам владельца
+        List<Comment> ownerItemComments = commentRepository.findAllByItemOwnerIdOrderByCreatedDesc(ownerId);
+
+        LocalDateTime now = LocalDateTime.now();
+        List<ItemLastBookingProjection> ownerItemsLastBookings = bookingRepository
+                .findAllLastBookingByStatus(ownerId, BookingStatus.APPROVED.name(), now);
+
+        List<ItemNextBookingProjection> ownerItemsNextBookings = bookingRepository
+                .findAllNextBookingByStatus(ownerId, BookingStatus.APPROVED.name(), now);
+
+        // Раскладываем по itemId
+        Map<Long, LocalDateTime> lastBookingByItemId = ownerItemsLastBookings.stream()
+                .collect(Collectors.toMap(
+                        ItemLastBookingProjection::getId,
+                        ItemLastBookingProjection::getLastBooking,
+                        (a, b) -> a));
+
+        Map<Long, LocalDateTime> nextBookingByItemId = ownerItemsNextBookings.stream()
+                .collect(Collectors.toMap(
+                        ItemNextBookingProjection::getId,
+                        ItemNextBookingProjection::getNextBooking,
+                        (a, b) -> a));
+
+        Map<Long, List<Comment>> commentsByItemId = ownerItemComments.stream()
+                .collect(Collectors.groupingBy(comment -> comment.getItem().getId()));
+
+        return ownerItems.stream()
                 .map(item -> {
-                    item.setLastBooking(bookingRepository.getLastBookingEndDateByItemId(item.getId(), now));
-                    item.setNextBooking(bookingRepository.getNextBookingStartDateByItemId(item.getId(), now));
-                    List<Comment> comments = commentRepository.findAllByItemId(item.getId());
-                    item.setComments(comments.stream().map(CommentMapper::mapCommentToCommentResponseDto).toList());
-                    return item;
+                    ItemGetAllResponseDto itemDto = ItemMapper
+                            .mapItemToItemWithBookingDatesResponseDto(item);
+                    itemDto.setLastBooking(lastBookingByItemId.get(item.getId()));
+                    itemDto.setNextBooking(nextBookingByItemId.get(item.getId()));
+                    itemDto.setComments(commentsByItemId.getOrDefault(item.getId(), List.of()).stream()
+                            .map(CommentMapper::mapCommentToCommentResponseDto)
+                            .toList());
+                    return itemDto;
                 })
                 .toList();
     }

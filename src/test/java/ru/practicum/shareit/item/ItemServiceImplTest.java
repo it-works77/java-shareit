@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.booking.enums.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.dto.*;
@@ -235,41 +236,54 @@ class ItemServiceImplTest {
         Long ownerId = 1L;
         Item firstItem = buildItem(1L, ownerId, "Дрель", "Ударная дрель", true);
         Item secondItem = buildItem(2L, ownerId, "Отвертка", "Крестовая отвертка", false);
-        List<Item> items = List.of(firstItem, secondItem);
 
         LocalDateTime lastBookingFirst = LocalDateTime.of(2025, 1, 1, 12, 0);
         LocalDateTime nextBookingFirst = LocalDateTime.of(2025, 2, 1, 12, 0);
         LocalDateTime lastBookingSecond = LocalDateTime.of(2025, 1, 15, 12, 0);
 
-        when(itemRepository.getAllByOwnerId(ownerId)).thenReturn(items);
+        ItemLastBookingProjection lastProjectionFirst =
+                lastBookingProjection(1L, lastBookingFirst);
+        ItemLastBookingProjection lastProjectionSecond =
+                lastBookingProjection(2L, lastBookingSecond);
+        ItemNextBookingProjection nextProjectionFirst =
+                nextBookingProjection(1L, nextBookingFirst);
 
-        when(bookingRepository.getLastBookingEndDateByItemId(eq(1L), any(LocalDateTime.class)))
-                .thenReturn(lastBookingFirst);
-        when(bookingRepository.getNextBookingStartDateByItemId(eq(1L), any(LocalDateTime.class)))
-                .thenReturn(nextBookingFirst);
-        when(bookingRepository.getLastBookingEndDateByItemId(eq(2L), any(LocalDateTime.class)))
-                .thenReturn(lastBookingSecond);
-        when(bookingRepository.getNextBookingStartDateByItemId(eq(2L), any(LocalDateTime.class)))
-                .thenReturn(null);
+        when(itemRepository.getAllByOwnerId(ownerId)).thenReturn(List.of(firstItem, secondItem));
+        when(commentRepository.findAllByItemOwnerIdOrderByCreatedDesc(ownerId)).thenReturn(List.of());
+        when(bookingRepository.findAllLastBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class)))
+                .thenReturn(List.of(lastProjectionFirst, lastProjectionSecond));
+        when(bookingRepository.findAllNextBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class)))
+                .thenReturn(List.of(nextProjectionFirst));
 
-        List<ItemGetAllResponseDto> response = itemService.getAllByUserId(ownerId);
+        List<ItemGetAllResponseDto> result = itemService.getAllByOwnerId(ownerId);
 
-        assertNotNull(response);
-        assertEquals(2, response.size());
+        assertNotNull(result);
+        assertEquals(2, result.size());
 
-        ItemGetAllResponseDto first = response.get(0);
+        ItemGetAllResponseDto first = result.get(0);
+        assertEquals(1L, first.getId());
         assertEquals("Дрель", first.getName());
+        assertEquals("Ударная дрель", first.getDescription());
         assertEquals(Boolean.TRUE, first.getAvailable());
         assertEquals(lastBookingFirst, first.getLastBooking());
         assertEquals(nextBookingFirst, first.getNextBooking());
 
-        ItemGetAllResponseDto second = response.get(1);
+        ItemGetAllResponseDto second = result.get(1);
+        assertEquals(2L, second.getId());
         assertEquals("Отвертка", second.getName());
+        assertEquals("Крестовая отвертка", second.getDescription());
         assertEquals(Boolean.FALSE, second.getAvailable());
         assertEquals(lastBookingSecond, second.getLastBooking());
         assertNull(second.getNextBooking());
 
         verify(itemRepository).getAllByOwnerId(ownerId);
+        verify(commentRepository).findAllByItemOwnerIdOrderByCreatedDesc(ownerId);
+        verify(bookingRepository).findAllLastBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class));
+        verify(bookingRepository).findAllNextBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class));
     }
 
 
@@ -354,5 +368,21 @@ class ItemServiceImplTest {
         item.setDescription(description);
         item.setAvailable(available);
         return item;
+    }
+
+    private ItemLastBookingProjection lastBookingProjection(Long itemId, LocalDateTime date) {
+        ItemLastBookingProjection projection =
+                org.mockito.Mockito.mock(ItemLastBookingProjection.class);
+        when(projection.getId()).thenReturn(itemId);
+        when(projection.getLastBooking()).thenReturn(date);
+        return projection;
+    }
+
+    private ItemNextBookingProjection nextBookingProjection(Long itemId, LocalDateTime date) {
+        ItemNextBookingProjection projection =
+                org.mockito.Mockito.mock(ItemNextBookingProjection.class);
+        when(projection.getId()).thenReturn(itemId);
+        when(projection.getNextBooking()).thenReturn(date);
+        return projection;
     }
 }
