@@ -103,6 +103,7 @@ class ItemServiceImplTest {
         Long itemId = 99L;
         ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
@@ -120,6 +121,7 @@ class ItemServiceImplTest {
         Item existingItem = buildItem(itemId, 2L, "Старое имя", "Старое описание", true);
         ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
@@ -137,6 +139,7 @@ class ItemServiceImplTest {
         Item existingItem = buildItem(itemId, userId, "Старое имя", "Старое описание", true);
         ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", "Новое описание", false);
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
         when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -161,6 +164,7 @@ class ItemServiceImplTest {
         Item existingItem = buildItem(itemId, userId, "Старое имя", "Старое описание", true);
         ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
         when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -178,6 +182,7 @@ class ItemServiceImplTest {
         Long itemId = 1L;
         Item item = buildItem(itemId, 1L, "Дрель", "Ударная дрель", true);
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
         when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
 
@@ -202,6 +207,7 @@ class ItemServiceImplTest {
         LocalDateTime last = LocalDateTime.of(2025, 1, 1, 12, 0);
         LocalDateTime next = LocalDateTime.of(2025, 2, 1, 12, 0);
 
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
         when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
         when(bookingRepository.getLastBookingEndDateByItemId(eq(itemId), any(LocalDateTime.class)))
@@ -222,6 +228,7 @@ class ItemServiceImplTest {
         Long userId = 1L;
         Long itemId = 1L;
 
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
@@ -248,6 +255,7 @@ class ItemServiceImplTest {
         ItemNextBookingProjection nextProjectionFirst =
                 nextBookingProjection(1L, nextBookingFirst);
 
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(new User()));
         when(itemRepository.getAllByOwnerId(ownerId)).thenReturn(List.of(firstItem, secondItem));
         when(commentRepository.findAllByItemOwnerIdOrderByCreatedDesc(ownerId)).thenReturn(List.of());
         when(bookingRepository.findAllLastBookingByStatus(
@@ -369,6 +377,8 @@ class ItemServiceImplTest {
         item.setAvailable(available);
         return item;
     }
+
+
 
     private ItemLastBookingProjection lastBookingProjection(Long itemId, LocalDateTime date) {
         ItemLastBookingProjection projection =
