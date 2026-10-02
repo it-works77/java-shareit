@@ -91,8 +91,8 @@ public class GlobalExceptionHandler {
                 .message("Ошибка валидации")
                 .errors(errors)
                 .build();
-        log.warn("Ошибка валидации: {}", errors);
-        log.debug("Ошибка валидации", ex);
+        log.warn("Нарушено ограничение: {}", errors);
+        log.debug("Нарушено ограничение", ex);
         return ResponseEntity.badRequest().body(body);
     }
 
