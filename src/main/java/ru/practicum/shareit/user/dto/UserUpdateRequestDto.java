@@ -3,8 +3,10 @@ package ru.practicum.shareit.user.dto;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class UserUpdateRequestDto {
     private String name;
 

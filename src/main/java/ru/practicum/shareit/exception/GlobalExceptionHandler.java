@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundErrors(EntityNotFoundException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Объект не найден")
+                .error("Объект не найден")
                 .details(ex.getMessage())
                 .build();
         log.warn("Объект не найден: {}", ex.getMessage());
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEntityAlreadyExistsErrors(EntityAlreadyExistsException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Нарушение уникальности")
+                .error("Нарушение уникальности")
                 .details(ex.getMessage())
                 .build();
         log.warn("Нарушение уникальности: {}", ex.getMessage());
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ErrorResponse> handleMissingRequestHeaderErrors(MissingRequestHeaderException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Отсутствует обязательный заголовок")
+                .error("Отсутствует обязательный заголовок")
                 .details(ex.getMessage())
                 .build();
         log.warn("Отсутствует обязательный заголовок: {}", ex.getMessage());
@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ErrorResponse> handleIncorrectRequestErrors(Exception ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Ошибка парсинга запроса")
+                .error("Ошибка парсинга запроса")
                 .details(ex.getMessage())
                 .build();
         log.warn("Ошибка парсинга запроса: {}", ex.getMessage());
@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
         ValidationErrorResponse body = ValidationErrorResponse.builder()
-                .message("Ошибка валидации")
+                .error("Ошибка валидации")
                 .errors(errors)
                 .build();
         log.warn("Ошибка валидации: {}", errors);
@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
         });
 
         ValidationErrorResponse body = ValidationErrorResponse.builder()
-                .message("Ошибка валидации")
+                .error("Ошибка валидации")
                 .errors(errors)
                 .build();
         log.warn("Нарушено ограничение: {}", errors);
@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingRequestParam(MissingServletRequestParameterException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Отсутствует обязательный параметр")
+                .error("Отсутствует обязательный параметр")
                 .details(ex.getMessage())
                 .build();
         log.warn("Отсутствует обязательный параметр: {}", ex.getMessage());
@@ -110,7 +110,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ItemIsNotAvailableException.class)
     public ResponseEntity<ErrorResponse> handleItemIsNotAvailable(ItemIsNotAvailableException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Неверный статус вещи")
+                .error("Неверный статус вещи")
                 .details(ex.getMessage())
                 .build();
         log.warn("Неверный статус вещи: {}", ex.getMessage());
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Неверное состояние")
+                .error("Неверное состояние")
                 .details(ex.getMessage())
                 .build();
         log.warn("Неверное состояние: {}", ex.getMessage());
@@ -132,7 +132,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Доступ запрещен")
+                .error("Доступ запрещен")
                 .details(ex.getMessage())
                 .build();
         log.warn("Доступ запрещен: {}", ex.getMessage());
@@ -143,7 +143,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllErrors(Exception ex) {
         ErrorResponse body = ErrorResponse.builder()
-                .message("Внутренняя ошибка сервера")
+                .error("Внутренняя ошибка сервера")
                 .details(ex.getMessage())
                 .build();
         log.error("Внутренняя ошибка сервера: {}", ex.getMessage());

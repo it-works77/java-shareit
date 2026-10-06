@@ -72,7 +72,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Отсутствует обязательный заголовок"));
+                .andExpect(jsonPath("$.error").value("Отсутствует обязательный заголовок"));
     }
 
     @Test
@@ -82,7 +82,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -92,7 +92,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.userId").exists());
     }
 
@@ -103,7 +103,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.userId").exists());
     }
 
@@ -118,7 +118,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.name").exists());
     }
 
@@ -134,7 +134,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.name").exists());
     }
 
@@ -149,7 +149,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.description").exists());
     }
 
@@ -165,7 +165,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.description").exists());
     }
 
@@ -180,7 +180,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.available").exists());
     }
 
@@ -193,7 +193,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -205,7 +205,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(malformedJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -228,14 +228,14 @@ class ItemControllerTest {
     void get_invalidItemIdNotLong_returns400() throws Exception {
         mockMvc.perform(get("/items/abc").header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
     void get_invalidItemIdZero_returns400() throws Exception {
         mockMvc.perform(get("/items/0").header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());
     }
 
@@ -243,7 +243,7 @@ class ItemControllerTest {
     void get_invalidItemIdNegative_returns400() throws Exception {
         mockMvc.perform(get("/items/-1").header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());
     }
 
@@ -252,7 +252,7 @@ class ItemControllerTest {
         mockMvc.perform(get("/items/search")
                         .param("text", "drill"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Отсутствует обязательный заголовок"));
+                .andExpect(jsonPath("$.error").value("Отсутствует обязательный заголовок"));
     }
 
     @Test
@@ -268,7 +268,7 @@ class ItemControllerTest {
                         .header(USER_ID_HEADER, "abc")
                         .param("text", "drill"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -288,7 +288,7 @@ class ItemControllerTest {
     void getAllByUserId_missingHeaderXSharerUserId_returns400() throws Exception {
         mockMvc.perform(get("/items"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Отсутствует обязательный заголовок"));
+                .andExpect(jsonPath("$.error").value("Отсутствует обязательный заголовок"));
     }
 
     @Test
@@ -296,7 +296,7 @@ class ItemControllerTest {
         mockMvc.perform(get("/items")
                         .header(USER_ID_HEADER, "abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -304,7 +304,7 @@ class ItemControllerTest {
         mockMvc.perform(get("/items")
                         .header(USER_ID_HEADER, 0))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.userId").exists());
     }
 
@@ -325,7 +325,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Отсутствует обязательный заголовок"));
+                .andExpect(jsonPath("$.error").value("Отсутствует обязательный заголовок"));
     }
 
     @Test
@@ -335,7 +335,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -345,7 +345,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());
     }
 
@@ -356,7 +356,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -366,7 +366,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors").exists());
     }
 
@@ -379,7 +379,7 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(malformedJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
@@ -399,14 +399,14 @@ class ItemControllerTest {
     void delete_invalidItemIdNotLong_returns400() throws Exception {
         mockMvc.perform(delete("/items/abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка парсинга запроса"));
+                .andExpect(jsonPath("$.error").value("Ошибка парсинга запроса"));
     }
 
     @Test
     void delete_invalidItemIdZero_returns400() throws Exception {
         mockMvc.perform(delete("/items/0"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());
     }
 
@@ -414,7 +414,7 @@ class ItemControllerTest {
     void delete_invalidItemIdNegative_returns400() throws Exception {
         mockMvc.perform(delete("/items/-1"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Ошибка валидации"))
+                .andExpect(jsonPath("$.error").value("Ошибка валидации"))
                 .andExpect(jsonPath("$.errors.itemId").exists());
     }
 

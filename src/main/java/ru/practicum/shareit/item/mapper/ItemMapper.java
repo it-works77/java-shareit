@@ -14,6 +14,7 @@ public class ItemMapper {
                 .name(itemCreateRequestDto.getName())
                 .description(itemCreateRequestDto.getDescription())
                 .available(itemCreateRequestDto.getAvailable())
+                .requestId(itemCreateRequestDto.getRequestId())
                 .build();
     }
 
@@ -43,6 +44,14 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
+                .build();
+    }
+
+    public static RequestItemResponseDto mapItemToRequestItemResponseDto(Item item) {
+        return RequestItemResponseDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .ownerId(item.getOwnerId())
                 .build();
     }
 }

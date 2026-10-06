@@ -27,6 +27,9 @@ public class Item {
     @Column(nullable = false)
     private Long ownerId;
 
+    @Column
+    private Long requestId; // id запроса, в ответ на который создаётся нужная вещь.
+
     public static Item of(Item item) {
         return Item.builder()
                 .id(item.getId())
