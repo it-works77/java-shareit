@@ -39,13 +39,21 @@ class ItemRequestServiceImplIntegrationTest {
         User requestor2 = saveUser("requestor2", "requestor2@email.com");
         User requestor3 = saveUser("requestor3", "requestor3@email.com");
 
-        ItemRequest myUserRequest1 = saveItemRequest(myUser, "myUserRequest1");
-        ItemRequest myUserRequest2WithItem = saveItemRequest(myUser, "myUserRequest2WithItem");
+        // При проверках далее зависимость от времени создания (недетерминированное поведение теста)
+        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        ItemRequest myUserRequest1 = saveItemRequest(myUser, "myUserRequest1",
+                now.plusMinutes(1));
+        ItemRequest myUserRequest2WithItem = saveItemRequest(myUser, "myUserRequest2WithItem",
+                now.plusMinutes(2));
 
-        ItemRequest requestor2Request1WithItems = saveItemRequest(requestor3, "requestor2Request1WithItem");
-        ItemRequest requestor2Request2WithItem = saveItemRequest(requestor2, "requestor2Request2WithItem");
-        ItemRequest requestor3Request1 = saveItemRequest(requestor3, "requestor3Request1");
-        ItemRequest requestor3Request2 = saveItemRequest(requestor3, "requestor3Request2");
+        ItemRequest requestor2Request1WithItems = saveItemRequest(requestor3, "requestor2Request1WithItem",
+                now.plusMinutes(3));
+        ItemRequest requestor2Request2WithItem = saveItemRequest(requestor2, "requestor2Request2WithItem",
+                now.plusMinutes(4));
+        ItemRequest requestor3Request1 = saveItemRequest(requestor3, "requestor3Request1",
+                now.plusMinutes(5));
+        ItemRequest requestor3Request2 = saveItemRequest(requestor3, "requestor3Request2",
+                now.plusMinutes(6));
 
         Item myUserItem1 = saveItem(myUser, "item1", "myUserItem1", true, null);
 
@@ -92,11 +100,11 @@ class ItemRequestServiceImplIntegrationTest {
                 .build());
     }
 
-    private ItemRequest saveItemRequest(User user, String description) {
+    private ItemRequest saveItemRequest(User user, String description, LocalDateTime created) {
         return itemRequestRepository.save(ItemRequest.builder()
                 .description(description)
                 .requestor(user)
-                .created(LocalDateTime.now())
+                .created(created)
                 .build());
     }
 
