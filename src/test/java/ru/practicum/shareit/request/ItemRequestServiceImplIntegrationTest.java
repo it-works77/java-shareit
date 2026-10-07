@@ -88,7 +88,7 @@ class ItemRequestServiceImplIntegrationTest {
                 .description(description)
                 .available(isAvailable)
                 .ownerId(owner.getId())
-                .requestId(itemRequest == null? null : itemRequest.getId())
+                .requestId(itemRequest == null ? null : itemRequest.getId())
                 .build());
     }
 
