@@ -68,21 +68,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                             @Param("status") BookingStatus bookingStatus);
 
 
-    @Query("select max(b.end) " +
+    @Query("select max(b.end) as lastBooking " +
             "from Booking b " +
             "where b.item.id = :itemId " +
             "and b.end < :now")
     LocalDateTime getLastBookingEndDateByItemId(@Param("itemId") Long itemId,
                                                 @Param("now") LocalDateTime now);
 
-    @Query("select min(b.start) " +
+    @Query("select min(b.start) as nextBooking " +
             "from Booking b " +
             "where b.item.id = :itemId " +
             "and b.start > :now")
     LocalDateTime getNextBookingStartDateByItemId(@Param("itemId") Long itemId,
                                                   @Param("now") LocalDateTime now);
 
-    @Query(value = "select i.id as itemId, max(b.end_date) as last_booking " +
+    @Query(value = "select i.id as id, max(b.end_date) as lastBooking " +
             "from items i " +
             "join bookings b on i.id = b.item_id " +
             "    and b.end_date < :now " +
@@ -93,7 +93,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                                @Param("status") String bookingStatus,
                                                                @Param("now") LocalDateTime now);
 
-    @Query(value = "select i.id as itemId, min(b.start_date) as next_booking " +
+    @Query(value = "select i.id as id, min(b.start_date) as nextBooking " +
             "from items i " +
             "join bookings b on i.id = b.item_id " +
             "    and b.start_date > :now " +
