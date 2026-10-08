@@ -299,7 +299,7 @@ class UserControllerTest {
         dto.setEmail(email);
         return dto;
     }
-    
+
     private static UserUpdateRequestDto createUpdateDto(String name, String email) {
         UserUpdateRequestDto updateDto = new UserUpdateRequestDto();
         updateDto.setName(name);
