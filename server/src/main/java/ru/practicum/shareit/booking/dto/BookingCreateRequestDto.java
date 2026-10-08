@@ -37,6 +37,6 @@ public class BookingCreateRequestDto {
 
     @AssertTrue(message = "Дата начала бронирования должна быть раньше даты окончания бронирования")
     public boolean isDatesValid() {
-        return start.isBefore(end);
+        return start != null && end != null && start.isBefore(end);
     }
 }

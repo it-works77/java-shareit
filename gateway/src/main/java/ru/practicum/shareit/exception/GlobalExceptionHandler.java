@@ -102,6 +102,14 @@ public class GlobalExceptionHandler {
         return createResponse(HttpStatus.BAD_REQUEST, "Неверное состояние", request);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        log.warn("Неверный параметр: {}", ex.getMessage());
+        log.debug("Неверный параметр", ex);
+
+        return createResponse(HttpStatus.BAD_REQUEST, "Неверный параметр", request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllErrors(Exception ex, WebRequest request) {
         log.error("Внутренняя ошибка сервера: {}", ex.getMessage());
