@@ -17,7 +17,6 @@ import ru.practicum.shareit.user.dto.UserUpdateRequestDto;
 @Slf4j
 @Validated
 public class UserController {
-    private static final String USER_ID_HEADER = "X-Sharer-User-Id";
     private final UserClient userClient;
 
     @PostMapping
