@@ -6,8 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.dto.ItemRequestCreateResponseDto;
+import ru.practicum.shareit.request.dto.ItemRequestRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestResponseDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
@@ -88,6 +91,92 @@ class ItemRequestServiceImplIntegrationTest {
         // В ответ добавлены корректные вещи
         assertEquals(myUserItem2.getId(), requestDtos.get(3).getItems().get(0).getId());
         assertEquals(myUserItem3.getId(), requestDtos.get(3).getItems().get(1).getId());
+    }
+
+    @Test
+    void addByUserId_whenUserExists_thenReturnCreated() {
+        User requestor = saveUser("requestor", "requestor@email.com");
+
+        ItemRequestRequestDto dto = new ItemRequestRequestDto();
+        dto.setDescription("Need a drill");
+
+        ItemRequestCreateResponseDto response = itemRequestService.addByUserId(requestor.getId(), dto);
+
+        assertNotNull(response.getId());
+        assertEquals("Need a drill", response.getDescription());
+        assertNotNull(response.getCreated());
+    }
+
+    @Test
+    void addByUserId_whenUserNotFound_thenThrow() {
+        ItemRequestRequestDto dto = new ItemRequestRequestDto();
+        dto.setDescription("Need a drill");
+
+        assertThrows(EntityNotFoundException.class, () -> itemRequestService.addByUserId(999L, dto));
+    }
+
+    @Test
+    void getById_whenRequestHasItems_thenReturnWithItems() {
+        User requestor = saveUser("requestor", "requestor@email.com");
+        User owner = saveUser("owner", "owner@email.com");
+        ItemRequest request = saveItemRequest(requestor, "Need a drill",
+                LocalDateTime.of(2026, 1, 2, 0, 0));
+        Item item = saveItem(owner, "item1", "Drill", true, request);
+
+        ItemRequestResponseDto response = itemRequestService.getById(requestor.getId(), request.getId());
+
+        assertEquals(request.getId(), response.getId());
+        assertEquals(1, response.getItems().size());
+        assertEquals(item.getId(), response.getItems().get(0).getId());
+    }
+
+    @Test
+    void getById_whenNoItems_thenReturnEmptyItems() {
+        User requestor = saveUser("requestor", "requestor@email.com");
+        ItemRequest request = saveItemRequest(requestor, "Need a drill",
+                LocalDateTime.of(2026, 1, 2, 0, 0));
+
+        ItemRequestResponseDto response = itemRequestService.getById(requestor.getId(), request.getId());
+
+        assertTrue(response.getItems().isEmpty());
+    }
+
+    @Test
+    void getById_whenRequestNotFound_thenThrow() {
+        User requestor = saveUser("requestor", "requestor@email.com");
+
+        assertThrows(EntityNotFoundException.class, () -> itemRequestService.getById(requestor.getId(), 999L));
+    }
+
+    @Test
+    void getAllByRequestorId_whenRequestsExist_thenReturnSortedWithItems() {
+        User requestor = saveUser("requestor", "requestor@email.com");
+        User owner = saveUser("owner", "owner@email.com");
+        LocalDateTime now = LocalDateTime.of(2026, 1, 3, 0, 0);
+        ItemRequest older = saveItemRequest(requestor, "older", now.plusMinutes(1));
+        ItemRequest newer = saveItemRequest(requestor, "newer", now.plusMinutes(2));
+        Item item = saveItem(owner, "item1", "Drill", true, newer);
+
+        List<ItemRequestResponseDto> result = itemRequestService.getAllByRequestorId(requestor.getId());
+
+        assertEquals(2, result.size());
+        assertEquals(newer.getId(), result.get(0).getId());
+        assertEquals(older.getId(), result.get(1).getId());
+        assertEquals(1, result.get(0).getItems().size());
+        assertEquals(item.getId(), result.get(0).getItems().get(0).getId());
+        assertTrue(result.get(1).getItems().isEmpty());
+    }
+
+    @Test
+    void getAllByRequestorId_whenEmpty_thenReturnEmpty() {
+        User requestor = saveUser("requestor", "requestor@email.com");
+
+        assertTrue(itemRequestService.getAllByRequestorId(requestor.getId()).isEmpty());
+    }
+
+    @Test
+    void getAllByRequestorId_whenUserNotFound_thenThrow() {
+        assertThrows(EntityNotFoundException.class, () -> itemRequestService.getAllByRequestorId(999L));
     }
 
     private Item saveItem(User owner, String name, String description, boolean isAvailable, ItemRequest itemRequest) {

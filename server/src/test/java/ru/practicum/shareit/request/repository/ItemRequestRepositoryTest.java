@@ -73,5 +73,56 @@ class ItemRequestRepositoryTest {
         assertTrue(result.stream()
                 .noneMatch(request -> request.getRequestor().getId().equals(requestor.getId())));
     }
+
+    @Test
+    void findAllByRequestorIdOrderByCreatedDesc_whenRequestsExist_thenReturnSortedDesc() {
+        LocalDateTime now = LocalDateTime.now();
+
+        User requestor = userRepository.save(User.builder()
+                .name("requestor")
+                .email("requestor@example.com")
+                .build());
+
+        User otherUser = userRepository.save(User.builder()
+                .name("other")
+                .email("other@example.com")
+                .build());
+
+        ItemRequest olderRequest = itemRequestRepository.save(ItemRequest.builder()
+                .description("Старый запрос")
+                .requestor(requestor)
+                .created(now.minusHours(2))
+                .build());
+
+        ItemRequest newerRequest = itemRequestRepository.save(ItemRequest.builder()
+                .description("Новый запрос")
+                .requestor(requestor)
+                .created(now.minusHours(1))
+                .build());
+
+        itemRequestRepository.save(ItemRequest.builder()
+                .description("Чужой запрос")
+                .requestor(otherUser)
+                .created(now)
+                .build());
+
+        List<ItemRequest> result =
+                itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(requestor.getId());
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals(newerRequest.getId(), result.get(0).getId());
+        assertEquals(olderRequest.getId(), result.get(1).getId());
+    }
+
+    @Test
+    void findAllByRequestorIdOrderByCreatedDesc_whenEmpty_returnsEmpty() {
+        User requestor = userRepository.save(User.builder()
+                .name("requestor")
+                .email("requestor@example.com")
+                .build());
+
+        assertTrue(itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(requestor.getId()).isEmpty());
+    }
 }
 
