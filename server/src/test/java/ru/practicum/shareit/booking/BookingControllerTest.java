@@ -49,16 +49,6 @@ class BookingControllerTest {
     }
 
     @Test
-    void add_whenDatesInverted_returnsBadRequest() throws Exception {
-        mockMvc.perform(post("/bookings")
-                        .header(HEADER, 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"itemId\":1,\"start\":\"2026-10-10T12:00:00\","
-                                + "\"end\":\"2026-10-09T12:00:00\"}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void updateApprovement_whenValid_returnsOk() throws Exception {
         when(bookingService.updateApprovement(1L, 1L, true))
                 .thenReturn(BookingResponseDto.builder().id(1L).build());

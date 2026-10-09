@@ -1,9 +1,6 @@
 package ru.practicum.shareit.request;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestCreateResponseDto;
@@ -15,7 +12,6 @@ import java.util.List;
  * TODO Sprint add-item-requests.
  */
 @RestController
-@Validated
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
 public class ItemRequestController {
@@ -23,24 +19,24 @@ public class ItemRequestController {
     private final ItemRequestService itemRequestService;
 
     @PostMapping
-    public ItemRequestCreateResponseDto add(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
-                                            @Valid @RequestBody ItemRequestRequestDto itemRequestRequestDto) {
+    public ItemRequestCreateResponseDto add(@RequestHeader(USER_ID_HEADER) Long userId,
+                                            @RequestBody ItemRequestRequestDto itemRequestRequestDto) {
         return itemRequestService.addByUserId(userId, itemRequestRequestDto);
     }
 
     @GetMapping("/{requestId}")
-    public ItemRequestResponseDto getById(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
+    public ItemRequestResponseDto getById(@RequestHeader(USER_ID_HEADER) Long userId,
                                           @PathVariable Long requestId) {
         return itemRequestService.getById(userId, requestId);
     }
 
     @GetMapping
-    public List<ItemRequestResponseDto> getAllByRequesterId(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
+    public List<ItemRequestResponseDto> getAllByRequesterId(@RequestHeader(USER_ID_HEADER) Long userId) {
         return itemRequestService.getAllByRequestorId(userId);
     }
 
     @GetMapping("/all")
-    public List<ItemRequestResponseDto> getAllNotMy(@RequestHeader(USER_ID_HEADER) @Positive Long userId) {
+    public List<ItemRequestResponseDto> getAllNotMy(@RequestHeader(USER_ID_HEADER) Long userId) {
         return itemRequestService.getAllNotMy(userId);
     }
 }

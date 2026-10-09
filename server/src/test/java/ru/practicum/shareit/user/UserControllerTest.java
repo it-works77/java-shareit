@@ -43,14 +43,6 @@ class UserControllerTest {
     }
 
     @Test
-    void add_whenEmailInvalid_returnsBadRequest() throws Exception {
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"John\",\"email\":\"bad\"}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void add_whenEmailExists_returnsConflict() throws Exception {
         when(userService.add(any(UserCreateRequestDto.class)))
                 .thenThrow(new EntityAlreadyExistsException("Пользователь с email=x уже существует"));
@@ -72,12 +64,6 @@ class UserControllerTest {
     }
 
     @Test
-    void get_whenNegativeId_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/users/-1"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void get_whenNotFound_returnsNotFound() throws Exception {
         when(userService.get(anyLong())).thenThrow(new EntityNotFoundException("not found"));
 
@@ -95,14 +81,6 @@ class UserControllerTest {
                         .content("{\"name\":\"Jane\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Jane"));
-    }
-
-    @Test
-    void update_whenEmptyBody_returnsBadRequest() throws Exception {
-        mockMvc.perform(patch("/users/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

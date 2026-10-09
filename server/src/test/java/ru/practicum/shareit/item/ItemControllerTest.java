@@ -20,9 +20,6 @@ import ru.practicum.shareit.item.dto.ItemUpdateRequestDto;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -120,15 +117,6 @@ class ItemControllerTest {
     }
 
     @Test
-    void update_whenEmptyBody_returnsBadRequest() throws Exception {
-        mockMvc.perform(patch("/items/1")
-                        .header(HEADER, 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void delete_whenValid_returnsOk() throws Exception {
         mockMvc.perform(delete("/items/1"))
                 .andExpect(status().isOk());
@@ -169,12 +157,5 @@ class ItemControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Drill\",\"description\":\"d\",\"available\":true}"))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void search_whenHeaderNegative_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/items/search").header(HEADER, -1L).param("text", "x"))
-                .andExpect(status().isBadRequest());
-        verify(itemService, never()).search(anyString());
     }
 }

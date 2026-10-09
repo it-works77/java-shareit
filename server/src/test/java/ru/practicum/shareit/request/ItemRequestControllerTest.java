@@ -45,15 +45,6 @@ class ItemRequestControllerTest {
     }
 
     @Test
-    void add_whenDescriptionBlank_returnsBadRequest() throws Exception {
-        mockMvc.perform(post("/requests")
-                        .header(HEADER, 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"description\":\"\"}"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void getById_whenFound_returnsOk() throws Exception {
         when(itemRequestService.getById(1L, 1L))
                 .thenReturn(ItemRequestResponseDto.builder().id(1L).items(List.of()).build());

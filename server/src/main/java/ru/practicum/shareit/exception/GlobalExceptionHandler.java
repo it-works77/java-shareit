@@ -1,6 +1,5 @@
 package ru.practicum.shareit.exception;
 
-import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,24 +74,6 @@ public class GlobalExceptionHandler {
                 .build();
         log.warn("Ошибка валидации: {}", errors);
         log.debug("Ошибка валидации", ex);
-        return ResponseEntity.badRequest().body(body);
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getConstraintViolations().forEach(violation -> {
-            String path = violation.getPropertyPath().toString();
-            String field = path.contains(".") ? path.substring(path.lastIndexOf('.') + 1) : path;
-            errors.put(field, violation.getMessage());
-        });
-
-        ValidationErrorResponse body = ValidationErrorResponse.builder()
-                .error("Ошибка валидации")
-                .errors(errors)
-                .build();
-        log.warn("Нарушено ограничение: {}", errors);
-        log.debug("Нарушено ограничение", ex);
         return ResponseEntity.badRequest().body(body);
     }
 

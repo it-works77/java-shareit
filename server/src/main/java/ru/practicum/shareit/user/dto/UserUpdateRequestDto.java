@@ -1,7 +1,5 @@
 package ru.practicum.shareit.user.dto;
 
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Email;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,12 +7,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserUpdateRequestDto {
     private String name;
-
-    @Email
     private String email;
-
-    @AssertTrue(message = "Необходимо указать, как минимум, одно поле для обновления")
-    public boolean isAtLeastOneFieldProvided() {
-        return name != null || email != null;
-    }
 }
