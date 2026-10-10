@@ -79,14 +79,17 @@ class ItemClientTest {
 
     @Test
     void search_appendsTextToPath() {
-        when(rest.exchange(eq("/search?text=drill"), eq(HttpMethod.GET), any(HttpEntity.class),
-                eq(Object.class)))
+        Map<String, Object> params = Map.of("text", "drill");
+        when(rest.exchange(eq("/search?text={text}"), eq(HttpMethod.GET), any(HttpEntity.class),
+                eq(Object.class), eq(params)))
                 .thenReturn(ResponseEntity.ok("ok"));
 
-        client.search("drill");
+        client.search(1L, "drill");
 
-        verify(rest).exchange(eq("/search?text=drill"), eq(HttpMethod.GET), any(HttpEntity.class),
-                eq(Object.class));
+        ArgumentCaptor<HttpEntity<?>> captor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(rest).exchange(eq("/search?text={text}"), eq(HttpMethod.GET), captor.capture(),
+                eq(Object.class), eq(params));
+        assertThat(captor.getValue().getHeaders().getFirst("X-Sharer-User-Id")).isEqualTo("1");
     }
 
     @Test

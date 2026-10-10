@@ -42,7 +42,7 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<Object> search(@RequestHeader(USER_ID_HEADER) @Positive Long userId,
                                          @RequestParam(name = "text") String text) {
-        return itemClient.search(text);
+        return itemClient.search(userId, text);
     }
 
     @PatchMapping("/{itemId}")

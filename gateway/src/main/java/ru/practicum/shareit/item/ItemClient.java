@@ -41,8 +41,8 @@ public class ItemClient extends BaseClient {
     }
 
 
-    public ResponseEntity<Object> search(String text) {
-        return get("/search?text=" + text);
+    public ResponseEntity<Object> search(Long userId, String text) {
+        return get("/search?text={text}", userId, Map.of("text", text));
     }
 
     public ResponseEntity<Object> updateById(Long userId, Long itemId, ItemUpdateRequestDto itemUpdateRequestDto) {

@@ -310,14 +310,14 @@ class ItemControllerTest {
     // GET /items/search - Search Items
     @Test
     void search_whenValidRequest_shouldReturnOk() throws Exception {
-        when(itemClient.search(anyString())).thenReturn(ResponseEntity.ok().build());
+        when(itemClient.search(anyLong(), anyString())).thenReturn(ResponseEntity.ok().build());
 
         mockMvc.perform(get("/items/search")
                         .header(USER_ID_HEADER, 1)
                         .param("text", "drill"))
                 .andExpect(status().isOk());
 
-        verify(itemClient).search("drill");
+        verify(itemClient).search(1L, "drill");
     }
 
     @Test
@@ -326,7 +326,7 @@ class ItemControllerTest {
                         .param("text", "drill"))
                 .andExpect(status().isBadRequest());
 
-        verify(itemClient, never()).search(anyString());
+        verify(itemClient, never()).search(anyLong(), anyString());
     }
 
     @Test
@@ -336,7 +336,7 @@ class ItemControllerTest {
                         .param("text", "drill"))
                 .andExpect(status().isBadRequest());
 
-        verify(itemClient, never()).search(anyString());
+        verify(itemClient, never()).search(anyLong(), anyString());
     }
 
     @Test
@@ -345,7 +345,7 @@ class ItemControllerTest {
                         .header(USER_ID_HEADER, 1))
                 .andExpect(status().isBadRequest());
 
-        verify(itemClient, never()).search(anyString());
+        verify(itemClient, never()).search(anyLong(), anyString());
     }
 
     // PATCH /items/{itemId} - Update Item
