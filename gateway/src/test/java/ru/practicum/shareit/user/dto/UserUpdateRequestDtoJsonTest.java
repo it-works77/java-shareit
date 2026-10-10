@@ -29,15 +29,6 @@ class UserUpdateRequestDtoJsonTest {
     }
 
     @Test
-    void serialize_exposesAtLeastOneFieldProvidedProperty() throws Exception {
-        UserUpdateRequestDto dto = new UserUpdateRequestDto();
-        dto.setEmail("jane@mail.com");
-
-        assertThat(json.write(dto)).hasJsonPathBooleanValue("$.atLeastOneFieldProvided");
-        assertThat(json.write(dto)).extractingJsonPathBooleanValue("$.atLeastOneFieldProvided").isEqualTo(true);
-    }
-
-    @Test
     void roundTrip_emailOnly() throws Exception {
         UserUpdateRequestDto dto = new UserUpdateRequestDto();
         dto.setEmail("jane@mail.com");
@@ -46,5 +37,16 @@ class UserUpdateRequestDtoJsonTest {
 
         assertThat(parsed.getEmail()).isEqualTo("jane@mail.com");
         assertThat(parsed.getName()).isNull();
+    }
+
+    @Test
+    void serialize_exposesOnlyContractFields() throws Exception {
+        UserUpdateRequestDto dto = new UserUpdateRequestDto();
+        dto.setName("Jane");
+        dto.setEmail("jane@mail.com");
+
+        assertThat(json.write(dto)).hasJsonPathStringValue("$.name");
+        assertThat(json.write(dto)).hasJsonPathStringValue("$.email");
+        assertThat(json.write(dto)).doesNotHaveJsonPath("$.atLeastOneFieldProvided");
     }
 }

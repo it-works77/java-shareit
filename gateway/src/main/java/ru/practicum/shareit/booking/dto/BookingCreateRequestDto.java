@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,7 @@ public class BookingCreateRequestDto {
      */
     private Long bookerId;
 
+    @JsonIgnore
     @AssertTrue(message = "Дата начала бронирования должна быть раньше даты окончания бронирования")
     public boolean isDatesValid() {
         return start != null && end != null && start.isBefore(end);

@@ -31,15 +31,19 @@ class BookingCreateRequestDtoJsonTest {
     }
 
     @Test
-    void serialize_exposesDatesValidDerivedProperty() throws Exception {
+    void serialize_exposesOnlyContractFields() throws Exception {
         BookingCreateRequestDto dto = BookingCreateRequestDto.builder()
                 .itemId(1L)
                 .start(START)
                 .end(END)
+                .bookerId(5L)
                 .build();
 
-        assertThat(json.write(dto)).hasJsonPathBooleanValue("$.datesValid");
-        assertThat(json.write(dto)).extractingJsonPathBooleanValue("$.datesValid").isEqualTo(true);
+        assertThat(json.write(dto)).extractingJsonPathStringValue("$.start").isEqualTo("2026-10-08T12:00:00");
+        assertThat(json.write(dto)).extractingJsonPathStringValue("$.end").isEqualTo("2026-10-09T12:00:00");
+        assertThat(json.write(dto)).extractingJsonPathNumberValue("$.itemId").isEqualTo(1);
+        assertThat(json.write(dto)).extractingJsonPathNumberValue("$.bookerId").isEqualTo(5);
+        assertThat(json.write(dto)).doesNotHaveJsonPathValue("$.datesValid");
     }
 
     @Test

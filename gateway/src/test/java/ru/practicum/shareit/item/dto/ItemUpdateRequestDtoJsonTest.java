@@ -31,15 +31,6 @@ class ItemUpdateRequestDtoJsonTest {
     }
 
     @Test
-    void serialize_exposesAtLeastOneFieldProvidedProperty() throws Exception {
-        ItemUpdateRequestDto dto = new ItemUpdateRequestDto();
-        dto.setName("Saw");
-
-        assertThat(json.write(dto)).hasJsonPathBooleanValue("$.atLeastOneFieldProvided");
-        assertThat(json.write(dto)).extractingJsonPathBooleanValue("$.atLeastOneFieldProvided").isEqualTo(true);
-    }
-
-    @Test
     void roundTrip_availableFlag() throws Exception {
         ItemUpdateRequestDto dto = new ItemUpdateRequestDto();
         dto.setAvailable(false);
@@ -48,5 +39,18 @@ class ItemUpdateRequestDtoJsonTest {
 
         assertThat(parsed.getAvailable()).isFalse();
         assertThat(parsed.getName()).isNull();
+    }
+
+    @Test
+    void serialize_exposesOnlyContractFields() throws Exception {
+        ItemUpdateRequestDto dto = new ItemUpdateRequestDto();
+        dto.setName("Вещь");
+        dto.setDescription("Описание");
+        dto.setAvailable(true);
+
+        assertThat(json.write(dto)).hasJsonPathStringValue("$.name");
+        assertThat(json.write(dto)).hasJsonPathStringValue("$.description");
+        assertThat(json.write(dto)).hasJsonPathBooleanValue("$.available");
+        assertThat(json.write(dto)).doesNotHaveJsonPath("$.atLeastOneFieldProvided");
     }
 }
