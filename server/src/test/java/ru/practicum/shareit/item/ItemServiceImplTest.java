@@ -14,6 +14,8 @@ import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -39,6 +41,9 @@ class ItemServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ItemRequestRepository itemRequestRepository;
 
     @Mock
     private CommentRepository commentRepository;
@@ -93,6 +98,45 @@ class ItemServiceImplTest {
         assertThrows(EntityNotFoundException.class,
                 () -> itemService.addByUserId(userId, request));
 
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    @DisplayName("когда requestId задан и существует, вещь сохраняется")
+    void addByUserId_whenRequestIdExists_savesItem() {
+        Long userId = 1L;
+        ItemCreateRequestDto request = buildCreateRequest("Дрель", "Описание", true);
+        request.setRequestId(999L);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRequestRepository.findById(999L)).thenReturn(Optional.of(new ItemRequest()));
+
+        itemService.addByUserId(userId, request);
+
+        ArgumentCaptor<Item> captor = ArgumentCaptor.forClass(Item.class);
+        verify(itemRepository).save(captor.capture());
+
+        Item savedItem = captor.getValue();
+        assertEquals(userId, savedItem.getOwnerId());
+        assertEquals("Дрель", savedItem.getName());
+        assertEquals("Описание", savedItem.getDescription());
+        assertEquals(Boolean.TRUE, savedItem.getAvailable());
+    }
+
+    @Test
+    @DisplayName("addByUserId: should throw when request is not found")
+    void addByUserId_whenRequestNotFound_shouldThrow() {
+        Long userId = 1L;
+        ItemCreateRequestDto request = buildCreateRequest("Дрель", "Описание", true);
+        request.setRequestId(999L);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRequestRepository.findById(request.getRequestId())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> itemService.addByUserId(userId, request));
+
+        verify(itemRequestRepository).findById(request.getRequestId());
         verify(itemRepository, never()).save(any(Item.class));
     }
 
