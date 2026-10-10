@@ -43,7 +43,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден по id=%s"
                         .formatted(userId)));
 
-        if(itemCreateRequestDto.getRequestId() != null) {
+        if (itemCreateRequestDto.getRequestId() != null) {
             itemRequestRepository.findById(itemCreateRequestDto.getRequestId())
                     .orElseThrow(() -> new EntityNotFoundException("Запрос не найден по id=%s"
                             .formatted(itemCreateRequestDto.getRequestId())));
