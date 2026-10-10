@@ -1,6 +1,7 @@
 package ru.practicum.shareit.exception;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import jakarta.validation.ConstraintViolation;
@@ -73,10 +74,14 @@ class GlobalExceptionHandlerTest {
         when(bindingResult.getFieldErrors())
                 .thenReturn(List.of(new FieldError("dto", "name", "must not be blank")));
 
-        ResponseEntity<ErrorResponse> response = handler.handleValidation(ex, request);
+        ResponseEntity<ValidationErrorResponse> response = handler.handleValidation(ex, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody().error()).isEqualTo("Ошибка валидации");
+        assertThat(response.getBody().errors())
+                .containsExactly(Map.entry("name", "must not be blank"));
+        assertThat(response.getBody().path()).isEqualTo("/bookings");
+        assertThat(response.getBody().status()).isEqualTo(400);
     }
 
     @Test
@@ -95,10 +100,13 @@ class GlobalExceptionHandlerTest {
 
         ConstraintViolationException ex = new ConstraintViolationException(Set.of(dotted, simple));
 
-        ResponseEntity<ErrorResponse> response = handler.handleConstraintViolation(ex, request);
+        ResponseEntity<ValidationErrorResponse> response = handler.handleConstraintViolation(ex, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody().error()).isEqualTo("Нарушено ограничение");
+        assertThat(response.getBody().errors())
+                .containsEntry("userId", "must be greater than 0");
+        assertThat(response.getBody().errors()).hasSize(1);
     }
 
     @Test
@@ -126,10 +134,14 @@ class GlobalExceptionHandlerTest {
         when(nullMessage.getDefaultMessage()).thenReturn(null);
         doReturn(List.of(withCodes, nullCodes, nullMessage)).when(ex).getAllErrors();
 
-        ResponseEntity<ErrorResponse> response = handler.handleHandlerMethodValidation(ex, request);
+        ResponseEntity<ValidationErrorResponse> response = handler.handleHandlerMethodValidation(ex, request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().error()).isEqualTo("Ошибка валидации");
+        assertThat(response.getBody().error()).isEqualTo("Ошибка валидации параметров");
+        assertThat(response.getBody().errors())
+                .containsEntry("userId", "must be greater than 0")
+                .containsEntry("unknown", "bad");
+        assertThat(response.getBody().errors()).hasSize(2);
     }
 
     @Test

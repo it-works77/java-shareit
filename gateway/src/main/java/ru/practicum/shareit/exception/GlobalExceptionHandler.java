@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         log.warn("Отсутствует обязательный заголовок: {}", ex.getMessage());
         log.debug("Отсутствует обязательный заголовок", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Отсутствует обязательный заголовок", request);
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Отсутствует обязательный заголовок", request);
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
@@ -37,11 +37,11 @@ public class GlobalExceptionHandler {
         log.warn("Ошибка парсинга запроса: {}", ex.getMessage());
         log.debug("Ошибка парсинга запроса", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Ошибка парсинга запроса", request);
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка парсинга запроса", request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
+    public ResponseEntity<ValidationErrorResponse> handleValidation(MethodArgumentNotValidException ex,
                                                                     WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
@@ -49,11 +49,11 @@ public class GlobalExceptionHandler {
         log.warn("Ошибка валидации: {}", errors);
         log.debug("Ошибка валидации", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Ошибка валидации", request);
+        return createValidationErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка валидации", errors, request);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex,
+    public ResponseEntity<ValidationErrorResponse> handleConstraintViolation(ConstraintViolationException ex,
                                                                              WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getConstraintViolations().forEach(violation -> {
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
         log.warn("Нарушено ограничение: {}", errors);
         log.debug("Нарушено ограничение", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Нарушено ограничение", request);
+        return createValidationErrorResponse(HttpStatus.BAD_REQUEST, "Нарушено ограничение", errors, request);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -73,11 +73,11 @@ public class GlobalExceptionHandler {
         log.warn("Отсутствует обязательный параметр: {}", ex.getMessage());
         log.debug("Отсутствует обязательный параметр", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Отсутствует обязательный параметр", request);
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Отсутствует обязательный параметр", request);
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<ErrorResponse> handleHandlerMethodValidation(HandlerMethodValidationException ex,
+    public ResponseEntity<ValidationErrorResponse> handleHandlerMethodValidation(HandlerMethodValidationException ex,
                                                                        WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getAllErrors().forEach(error -> {
@@ -91,7 +91,7 @@ public class GlobalExceptionHandler {
         log.warn("Ошибка валидации параметров: {}", errors);
         log.debug("Ошибка валидации параметров", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Ошибка валидации", request);
+        return createValidationErrorResponse(HttpStatus.BAD_REQUEST, "Ошибка валидации параметров", errors, request);
     }
 
     @ExceptionHandler(IllegalStateException.class)
@@ -99,7 +99,7 @@ public class GlobalExceptionHandler {
         log.warn("Неверное состояние: {}", ex.getMessage());
         log.debug("Неверное состояние", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Неверное состояние", request);
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Неверное состояние", request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -107,7 +107,7 @@ public class GlobalExceptionHandler {
         log.warn("Неверный параметр: {}", ex.getMessage());
         log.debug("Неверный параметр", ex);
 
-        return createResponse(HttpStatus.BAD_REQUEST, "Неверный параметр", request);
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "Неверный параметр", request);
     }
 
     @ExceptionHandler(Exception.class)
@@ -115,16 +115,31 @@ public class GlobalExceptionHandler {
         log.error("Внутренняя ошибка сервера: {}", ex.getMessage());
         log.debug("Внутренняя ошибка сервера:", ex);
 
-        return createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", request);
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Внутренняя ошибка сервера", request);
     }
 
-    private ResponseEntity<ErrorResponse> createResponse(HttpStatus status, String message, WebRequest request) {
+    private ResponseEntity<ErrorResponse> createErrorResponse(HttpStatus status, String message, WebRequest request) {
         return ResponseEntity
                 .status(status)
                 .body(new ErrorResponse(
                         OffsetDateTime.now(ZoneOffset.UTC),
                         status.value(),
                         message,
+                        request.getDescription(false).replace("uri=", "")
+                ));
+    }
+
+    private ResponseEntity<ValidationErrorResponse> createValidationErrorResponse(HttpStatus status,
+                                                                                  String message,
+                                                                                  Map<String, String> errors,
+                                                                                  WebRequest request) {
+        return ResponseEntity
+                .status(status)
+                .body(new ValidationErrorResponse(
+                        OffsetDateTime.now(ZoneOffset.UTC),
+                        status.value(),
+                        message,
+                        errors,
                         request.getDescription(false).replace("uri=", "")
                 ));
     }
