@@ -29,7 +29,7 @@ public class ItemRequest {
     private String description;
 
     // пользователь, который создал запрос
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requestor_id", nullable = false)
     private User requestor;
 
