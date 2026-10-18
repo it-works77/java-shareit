@@ -1,0 +1,442 @@
+package ru.practicum.shareit.item;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.booking.enums.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.EntityNotFoundException;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ItemServiceImplTest {
+
+    @Mock
+    private ItemRepository itemRepository;
+
+    @Mock
+    private BookingRepository bookingRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private ItemRequestRepository itemRequestRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
+
+    @InjectMocks
+    private ItemServiceImpl itemService;
+
+    @Test
+    @DisplayName("addByUserId: should save item and return DTO")
+    void addByUserId_shouldSaveItemAndReturnDto() {
+        Long userId = 1L;
+        ItemCreateRequestDto request = buildCreateRequest("Дрель", "Ударная дрель", true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+
+        when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> {
+            Item item = invocation.getArgument(0);
+            item.setId(10L);
+            return item;
+        });
+
+        ItemResponseDto response = itemService.addByUserId(userId, request);
+
+        assertNotNull(response);
+        assertEquals(10L, response.getId());
+        assertEquals("Дрель", response.getName());
+        assertEquals("Ударная дрель", response.getDescription());
+        assertEquals(Boolean.TRUE, response.getAvailable());
+
+        verify(userRepository).findById(userId);
+
+        ArgumentCaptor<Item> itemCaptor = ArgumentCaptor.forClass(Item.class);
+        verify(itemRepository).save(itemCaptor.capture());
+
+        Item savedItem = itemCaptor.getValue();
+        assertEquals(userId, savedItem.getOwnerId());
+        assertEquals("Дрель", savedItem.getName());
+        assertEquals("Ударная дрель", savedItem.getDescription());
+        assertEquals(Boolean.TRUE, savedItem.getAvailable());
+    }
+
+
+    @Test
+    @DisplayName("addByUserId: should throw when user is not found")
+    void addByUserId_whenUserNotFound_shouldThrow() {
+        Long userId = 999L;
+        ItemCreateRequestDto request = buildCreateRequest("Дрель", "Описание", true);
+
+        doThrow(new EntityNotFoundException("Пользователь не найден"))
+                .when(userRepository).findById(userId);
+
+        assertThrows(EntityNotFoundException.class,
+                () -> itemService.addByUserId(userId, request));
+
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    @DisplayName("когда requestId задан и существует, вещь сохраняется")
+    void addByUserId_whenRequestIdExists_savesItem() {
+        Long userId = 1L;
+        ItemCreateRequestDto request = buildCreateRequest("Дрель", "Описание", true);
+        request.setRequestId(999L);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRequestRepository.findById(999L)).thenReturn(Optional.of(new ItemRequest()));
+
+        itemService.addByUserId(userId, request);
+
+        ArgumentCaptor<Item> captor = ArgumentCaptor.forClass(Item.class);
+        verify(itemRepository).save(captor.capture());
+
+        Item savedItem = captor.getValue();
+        assertEquals(userId, savedItem.getOwnerId());
+        assertEquals("Дрель", savedItem.getName());
+        assertEquals("Описание", savedItem.getDescription());
+        assertEquals(Boolean.TRUE, savedItem.getAvailable());
+    }
+
+    @Test
+    @DisplayName("addByUserId: should throw when request is not found")
+    void addByUserId_whenRequestNotFound_shouldThrow() {
+        Long userId = 1L;
+        ItemCreateRequestDto request = buildCreateRequest("Дрель", "Описание", true);
+        request.setRequestId(999L);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRequestRepository.findById(request.getRequestId())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> itemService.addByUserId(userId, request));
+
+        verify(itemRequestRepository).findById(request.getRequestId());
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    @DisplayName("updateById: should throw when item does not exist")
+    void updateById_itemNotFound_shouldThrow() {
+        Long userId = 1L;
+        Long itemId = 99L;
+        ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> itemService.updateById(userId, itemId, request));
+
+        assertEquals("Вещь не найдена по id=99", exception.getMessage());
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    @DisplayName("updateById: should throw when user does not own item")
+    void updateById_notOwner_shouldThrow() {
+        Long userId = 1L;
+        Long itemId = 10L;
+        Item existingItem = buildItem(itemId, 2L, "Старое имя", "Старое описание", true);
+        ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> itemService.updateById(userId, itemId, request));
+
+        assertEquals("У пользователя userId=1 нет вещи с id=10", exception.getMessage());
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    @DisplayName("updateById: should update all non-null fields")
+    void updateById_shouldUpdateAllNonNullFields() {
+        Long userId = 1L;
+        Long itemId = 10L;
+        Item existingItem = buildItem(itemId, userId, "Старое имя", "Старое описание", true);
+        ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", "Новое описание", false);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ItemResponseDto response = itemService.updateById(userId, itemId, request);
+
+        assertNotNull(response);
+        assertEquals("Новое имя", response.getName());
+        assertEquals("Новое описание", response.getDescription());
+        assertEquals(Boolean.FALSE, response.getAvailable());
+
+        verify(itemRepository).save(existingItem);
+        assertEquals("Новое имя", existingItem.getName());
+        assertEquals("Новое описание", existingItem.getDescription());
+        assertEquals(Boolean.FALSE, existingItem.getAvailable());
+    }
+
+    @Test
+    @DisplayName("updateById: should update only non-null fields")
+    void updateById_shouldUpdateOnlyNonNullFields() {
+        Long userId = 1L;
+        Long itemId = 10L;
+        Item existingItem = buildItem(itemId, userId, "Старое имя", "Старое описание", true);
+        ItemUpdateRequestDto request = buildUpdateRequest("Новое имя", null, null);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ItemResponseDto response = itemService.updateById(userId, itemId, request);
+
+        assertEquals("Новое имя", response.getName());
+        assertEquals("Старое описание", response.getDescription());
+        assertEquals(Boolean.TRUE, response.getAvailable());
+    }
+
+    @Test
+    @DisplayName("get: should return item by id")
+    void get_shouldReturnItem() {
+        Long userId = 2L; // не владелец
+        Long itemId = 1L;
+        Item item = buildItem(itemId, 1L, "Дрель", "Ударная дрель", true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
+
+        ItemGetByIdResponseDto response = itemService.get(userId, itemId);
+
+        assertNotNull(response);
+        assertEquals(itemId, response.getId());
+        assertEquals("Дрель", response.getName());
+        assertEquals("Ударная дрель", response.getDescription());
+        assertEquals(Boolean.TRUE, response.getAvailable());
+        // не владелец не должен видеть даты бронирований
+        assertNull(response.getLastBooking());
+        assertNull(response.getNextBooking());
+    }
+
+    @Test
+    @DisplayName("get: should return booking dates only for owner")
+    void get_whenOwner_shouldReturnBookingDates() {
+        Long ownerId = 1L;
+        Long itemId = 1L;
+        Item item = buildItem(itemId, ownerId, "Дрель", "Ударная дрель", true);
+        LocalDateTime last = LocalDateTime.of(2025, 1, 1, 12, 0);
+        LocalDateTime next = LocalDateTime.of(2025, 2, 1, 12, 0);
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(itemId)).thenReturn(List.of());
+        when(bookingRepository.getLastBookingEndDateByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(last);
+        when(bookingRepository.getNextBookingStartDateByItemId(eq(itemId), any(LocalDateTime.class)))
+                .thenReturn(next);
+
+        ItemGetByIdResponseDto response = itemService.get(ownerId, itemId);
+
+        assertNotNull(response);
+        assertEquals(last, response.getLastBooking());
+        assertEquals(next, response.getNextBooking());
+    }
+
+    @Test
+    @DisplayName("get: should throw when item does not exist")
+    void get_whenItemNotFound_shouldThrow() {
+        Long userId = 1L;
+        Long itemId = 1L;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> itemService.get(userId, itemId));
+
+        assertEquals("Вещь не найдена по id=1", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("getAllByUserId: should return user items with last and next bookings")
+    void getAllByUserId_shouldReturnUserItems() {
+        Long ownerId = 1L;
+        Item firstItem = buildItem(1L, ownerId, "Дрель", "Ударная дрель", true);
+        Item secondItem = buildItem(2L, ownerId, "Отвертка", "Крестовая отвертка", false);
+
+        LocalDateTime lastBookingFirst = LocalDateTime.of(2025, 1, 1, 12, 0);
+        LocalDateTime nextBookingFirst = LocalDateTime.of(2025, 2, 1, 12, 0);
+        LocalDateTime lastBookingSecond = LocalDateTime.of(2025, 1, 15, 12, 0);
+
+        ItemLastBookingProjection lastProjectionFirst =
+                lastBookingProjection(1L, lastBookingFirst);
+        ItemLastBookingProjection lastProjectionSecond =
+                lastBookingProjection(2L, lastBookingSecond);
+        ItemNextBookingProjection nextProjectionFirst =
+                nextBookingProjection(1L, nextBookingFirst);
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.getAllByOwnerId(ownerId)).thenReturn(List.of(firstItem, secondItem));
+        when(commentRepository.findAllByItemOwnerIdOrderByCreatedDesc(ownerId)).thenReturn(List.of());
+        when(bookingRepository.findAllLastBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class)))
+                .thenReturn(List.of(lastProjectionFirst, lastProjectionSecond));
+        when(bookingRepository.findAllNextBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class)))
+                .thenReturn(List.of(nextProjectionFirst));
+
+        List<ItemGetAllResponseDto> result = itemService.getAllByOwnerId(ownerId);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+
+        ItemGetAllResponseDto first = result.get(0);
+        assertEquals(1L, first.getId());
+        assertEquals("Дрель", first.getName());
+        assertEquals("Ударная дрель", first.getDescription());
+        assertEquals(Boolean.TRUE, first.getAvailable());
+        assertEquals(lastBookingFirst, first.getLastBooking());
+        assertEquals(nextBookingFirst, first.getNextBooking());
+
+        ItemGetAllResponseDto second = result.get(1);
+        assertEquals(2L, second.getId());
+        assertEquals("Отвертка", second.getName());
+        assertEquals("Крестовая отвертка", second.getDescription());
+        assertEquals(Boolean.FALSE, second.getAvailable());
+        assertEquals(lastBookingSecond, second.getLastBooking());
+        assertNull(second.getNextBooking());
+
+        verify(itemRepository).getAllByOwnerId(ownerId);
+        verify(commentRepository).findAllByItemOwnerIdOrderByCreatedDesc(ownerId);
+        verify(bookingRepository).findAllLastBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class));
+        verify(bookingRepository).findAllNextBookingByStatus(
+                eq(ownerId), eq(BookingStatus.APPROVED.name()), any(LocalDateTime.class));
+    }
+
+
+    @Test
+    @DisplayName("search: should return empty list for blank text")
+    void search_blankText_shouldReturnEmptyList() {
+        List<ItemResponseDto> response = itemService.search("   ");
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+
+        verify(itemRepository, never()).findAllByText(anyString());
+    }
+
+    @Test
+    @DisplayName("search: should return matching items")
+    void search_shouldReturnMatchingItems() {
+        String text = "дрель";
+        List<Item> items = List.of(
+                buildItem(1L, 1L, "Дрель", "Ударная дрель", true)
+        );
+
+        when(itemRepository.findAllByText(text)).thenReturn(items);
+
+        List<ItemResponseDto> response = itemService.search(text);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals("Дрель", response.get(0).getName());
+
+        verify(itemRepository).findAllByText(text);
+    }
+
+    @Test
+    @DisplayName("remove: should delete existing item")
+    void remove_shouldDeleteItem() {
+        Long itemId = 1L;
+        Item item = buildItem(itemId, 1L, "Дрель", "Ударная дрель", true);
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        itemService.remove(itemId);
+
+        verify(itemRepository).deleteById(itemId);
+    }
+
+    @Test
+    @DisplayName("remove: should throw when item does not exist")
+    void remove_whenItemNotFound_shouldThrow() {
+        Long itemId = 1L;
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
+                () -> itemService.remove(itemId));
+
+        assertEquals("Вещь не найдена по id=1", exception.getMessage());
+        verify(itemRepository, never()).deleteById(any());
+    }
+
+    private ItemCreateRequestDto buildCreateRequest(String name, String description, Boolean available) {
+        ItemCreateRequestDto dto = new ItemCreateRequestDto();
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setAvailable(available);
+        return dto;
+    }
+
+    private ItemUpdateRequestDto buildUpdateRequest(String name, String description, Boolean available) {
+        ItemUpdateRequestDto dto = new ItemUpdateRequestDto();
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setAvailable(available);
+        return dto;
+    }
+
+    private Item buildItem(Long id, Long ownerId, String name, String description, Boolean available) {
+        Item item = new Item();
+        item.setId(id);
+        item.setOwnerId(ownerId);
+        item.setName(name);
+        item.setDescription(description);
+        item.setAvailable(available);
+        return item;
+    }
+
+
+
+    private ItemLastBookingProjection lastBookingProjection(Long itemId, LocalDateTime date) {
+        ItemLastBookingProjection projection =
+                org.mockito.Mockito.mock(ItemLastBookingProjection.class);
+        when(projection.getId()).thenReturn(itemId);
+        when(projection.getLastBooking()).thenReturn(date);
+        return projection;
+    }
+
+    private ItemNextBookingProjection nextBookingProjection(Long itemId, LocalDateTime date) {
+        ItemNextBookingProjection projection =
+                org.mockito.Mockito.mock(ItemNextBookingProjection.class);
+        when(projection.getId()).thenReturn(itemId);
+        when(projection.getNextBooking()).thenReturn(date);
+        return projection;
+    }
+}
